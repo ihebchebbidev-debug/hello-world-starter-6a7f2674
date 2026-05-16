@@ -1,0 +1,20 @@
+-- 007 down: drop performance indexes added in 007.up.sql
+DROP INDEX IF EXISTS idx_user_roles_user;
+DROP INDEX IF EXISTS idx_user_roles_role;
+DROP INDEX IF EXISTS idx_children_parent;
+DROP INDEX IF EXISTS idx_children_org;
+DROP INDEX IF EXISTS idx_assignments_route;
+DROP INDEX IF EXISTS idx_assignments_driver;
+DROP INDEX IF EXISTS idx_assignments_bus;
+DROP INDEX IF EXISTS idx_assignments_org;
+DROP INDEX IF EXISTS idx_trips_org_status;
+DROP INDEX IF EXISTS idx_trips_assignment;
+DROP INDEX IF EXISTS idx_notifications_user;
+DROP INDEX IF EXISTS idx_notifications_org;
+DROP INDEX IF EXISTS idx_alerts_org_created;
+DROP INDEX IF EXISTS idx_alerts_trip;
+DROP INDEX IF EXISTS idx_sos_org_created;
+DROP INDEX IF EXISTS idx_stop_events_trip;
+DROP INDEX IF EXISTS idx_device_tokens_user;
+DROP INDEX IF EXISTS idx_child_routes_child;
+DROP INDEX IF EXISTS idx_child_routes_route;

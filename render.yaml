@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: ecobus
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run render-build
+    startCommand: npm run render-start
+    envVars:
+      - key: NODE_VERSION
+        value: 20

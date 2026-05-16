@@ -1,0 +1,52 @@
+import { Router } from 'express';
+import auth from './auth.routes.js';
+import users from './user.routes.js';
+import organizations from './organization.routes.js';
+import buses from './bus.routes.js';
+import children from './children.routes.js';
+import childRoutes from './childRoute.routes.js';
+import drivers from './driver.routes.js';
+import routes from './route.routes.js';
+import trips from './trip.routes.js';
+import gps from './gps.routes.js';
+import devices from './device.routes.js';
+import eta from './eta.routes.js';
+import checkins from './checkin.routes.js';
+import sos from './sos.routes.js';
+import notifications from './notification.routes.js';
+import analytics from './analytics.routes.js';
+import alerts from './alert.routes.js';
+import geofences from './geofence.routes.js';
+import health from './health.routes.js';
+import logs from './logs.routes.js';
+import dev from './dev.routes.js';
+import absences from './absence.routes.js';
+
+const router = Router();
+
+router.use('/health', health);
+router.use('/logs', logs);
+router.use('/dev', dev);
+router.use('/auth', auth);
+router.use('/users', users);
+router.use('/organizations', organizations);
+router.use('/buses', buses);
+router.use('/children', children);
+router.use('/child-routes', childRoutes);
+router.use('/drivers', drivers);
+router.use('/routes', routes);
+router.use('/trips', trips);
+// Spec uses /tracking/location; we keep /gps as alias.
+router.use('/tracking', gps);
+router.use('/gps', gps);
+router.use('/devices', devices);
+router.use('/eta', eta);
+router.use('/checkins', checkins);
+router.use('/sos', sos);
+router.use('/notifications', notifications);
+router.use('/analytics', analytics);
+router.use('/alerts', alerts);
+router.use('/geofences', geofences);
+router.use('/absences', absences);
+
+export default router;

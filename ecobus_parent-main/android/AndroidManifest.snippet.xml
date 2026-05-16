@@ -1,0 +1,42 @@
+<!--
+  EcoBus Parent App — AndroidManifest.xml snippet.
+
+  Merge these declarations into android/app/src/main/AndroidManifest.xml.
+  Only declare permissions the app actually uses.
+
+  Target: Android 15 (API 35). Min: API 24.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <!-- ── Network ─────────────────────────────────────────────── -->
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+  <!-- ── Location (live bus tracking map only, foreground use) ── -->
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+  <!-- ── Notifications (Android 13+) ─────────────────────────── -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+  <!-- ── "Call driver" deep-link (uses ACTION_DIAL — no permission needed)
+       If you switch to ACTION_CALL, uncomment:
+  <uses-permission android:name="android.permission.CALL_PHONE" />
+  -->
+
+  <!-- ── Hardware features (declare optional so we don't filter devices) -->
+  <uses-feature android:name="android.hardware.location"     android:required="false" />
+  <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+
+  <application
+      android:allowBackup="false"
+      android:fullBackupContent="false"
+      android:dataExtractionRules="@xml/data_extraction_rules"
+      android:usesCleartextTraffic="false">
+
+    <!-- Google Maps API key — store as build secret, never commit. -->
+    <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="${GOOGLE_MAPS_API_KEY}" />
+  </application>
+</manifest>

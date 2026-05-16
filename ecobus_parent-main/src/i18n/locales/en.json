@@ -1,0 +1,426 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "or": "or",
+    "save": "Save",
+    "back": "Back",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "comingSoon": "Coming soon",
+    "tryAgain": "Try again",
+    "somethingWrong": "Something went wrong",
+    "networkError": "Network error",
+    "done": "Done",
+    "close": "Close"
+  },
+  "input": {
+    "show": "Show",
+    "hide": "Hide",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
+  "tabs": {
+    "home": "Home",
+    "history": "History",
+    "notifications": "Notifications",
+    "profile": "Profile"
+  },
+  "splash": {
+    "tagline": "Parent App",
+    "subtitle": "Real-time school bus tracking\nfor parents"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "start": "Get started",
+    "slide1": {
+      "title": "Real-time tracking",
+      "body": "Know exactly where your child's bus is at any moment with an interactive live map."
+    },
+    "slide2": {
+      "title": "Instant alerts",
+      "body": "Get notified the moment your child boards or gets off the school bus, even in the background."
+    },
+    "slide3": {
+      "title": "Safety first",
+      "body": "A built-in SOS button to immediately alert the school and driver in case of emergency."
+    }
+  },
+  "login": {
+    "welcome": "Welcome back",
+    "subtitle": "Sign in with your phone number",
+    "phoneLabel": "Phone number",
+    "passwordLabel": "Password",
+    "signIn": "Log in",
+    "forgotPassword": "Forgot password?",
+    "failed": "Login failed",
+    "demoAccess": "Explore the demo →",
+    "errors": {
+      "invalidPhone": "Enter a valid phone number",
+      "shortPassword": "At least 6 characters"
+    }
+  },
+  "otp": {
+    "changeNumber": "← Change number",
+    "title": "Enter the code",
+    "subtitle": "We sent a 6-digit code to",
+    "verify": "Verify code",
+    "verifying": "Verifying…",
+    "resendPrompt": "Didn't receive anything?",
+    "resendIn": "Resend in {{seconds}}s",
+    "resend": "Resend code",
+    "demoHint": "Demo mode — SMS not configured · Show code",
+    "devBadge": "DEMO MODE",
+    "devTitle": "Your verification code",
+    "devSub": "SMS sending isn't configured yet. Use this code to sign in:",
+    "devAutofill": "Autofill",
+    "close": "Close",
+    "verification": "VERIFICATION",
+    "errors": {
+      "network": "No connection. Check your network.",
+      "generic": "Something went wrong.",
+      "retryAfter": "Please wait {{seconds}}s before requesting a new code.",
+      "tooMany": "Too many attempts. Request a new code.",
+      "expired": "Code expired. Request a new code.",
+      "invalidCode": "Incorrect code. Check and try again.",
+      "noCode": "No code in progress. Tap “Resend”.",
+      "invalidPhone": "Invalid phone number.",
+      "smsFailed": "Could not send SMS. Try again later.",
+      "unknownPhone": "Phone not recognized. Contact your school.",
+      "server": "Server error. Try again later."
+    }
+  },
+  "forgot": {
+    "title": "Forgot Password",
+    "subtitle": "Enter your email and we'll send you a link to reset your password.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "parent@example.com",
+    "invalidEmail": "Enter a valid email",
+    "send": "Send reset link",
+    "tryAgainIn": "Try again in {{time}}",
+    "backToLogin": "Back to login",
+    "resend": "Resend email",
+    "resendIn": "Resend available in {{time}}",
+    "checkInbox": "Check your inbox",
+    "successBody": "If an account exists for {{email}}, you'll receive a password reset email shortly. Don't forget to check your spam folder.",
+    "cooldown": "You can request another link in {{time}}",
+    "sentToast": "Reset link sent. Check your email.",
+    "rateLimited": "Too many requests. Try again in {{time}}.",
+    "serverError": "Server error. Please try again later.",
+    "noNetwork": "Network error. Check your connection and try again.",
+    "ifExists": "If that email exists, a reset link has been sent."
+  },
+  "home": {
+    "greeting": "Hello",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "myChildren": "My Children",
+    "noChildren": "No children linked",
+    "noChildrenHint": "Contact your school to link your child.",
+    "grade": "Grade {{grade}}",
+    "morningRoute": "Morning Route",
+    "busStatus": "Bus Status",
+    "arrivingIn": "Arriving in",
+    "live": "LIVE",
+    "liveTracking": "Live Tracking",
+    "openTracking": "Open live tracking",
+    "notifications": "Notifications",
+    "tripHistory": "Trip History",
+    "sos": "SOS",
+    "openChild": "Open {{name}} details",
+    "quickAccess": "Quick Access",
+    "todayTrip": "Today's Trip",
+    "noTripToday": "No active trip today",
+    "recentActivity": "Recent Activity",
+    "viewAll": "View all",
+    "status": {
+      "onTheWay": "On the way",
+      "waiting": "Waiting",
+      "notBoarded": "Not boarded",
+      "droppedOff": "Dropped off"
+    }
+  },
+  "language": {
+    "title": "Language",
+    "english": "English",
+    "french": "Français",
+    "arabic": "العربية",
+    "restartHint": "App layout will switch direction for Arabic.",
+    "restartRequired": "Please restart the app to apply the new layout."
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Settings",
+    "notificationPrefs": "Notification preferences",
+    "childrenSchools": "Children & schools",
+    "language": "Language",
+    "legal": "Legal",
+    "privacy": "Privacy policy",
+    "terms": "Terms of service",
+    "contact": "Contact support",
+    "account": "Account",
+    "deleteAccount": "Delete account",
+    "deleteAccountSub": "Permanently remove your data",
+    "logout": "Log out",
+    "logoutConfirm": "Are you sure?",
+    "parentFallback": "Parent"
+  },
+  "child": {
+    "title": "Child Details",
+    "loading": "Loading child details",
+    "notFound": "Child not found",
+    "school": "School",
+    "route": "Route",
+    "pickupStop": "Pickup Stop",
+    "dropoffStop": "Drop-off Stop",
+    "viewOnMap": "View on Map"
+  },
+  "absence": {
+    "title": "Mark absent",
+    "forChild": "for {{name}}",
+    "reasonLabel": "Reason",
+    "daysLabel": "Day(s)",
+    "noteLabel": "Note (optional)",
+    "notePlaceholder": "Anything the school should know…",
+    "oneDayHelper": "1 day selected — tap a later day to extend.",
+    "multiDayHelper": "{{count}} days selected — tap inside the range to collapse.",
+    "confirm": "Confirm absence",
+    "successTitle": "Absence saved",
+    "successBody": "The bus will skip the pickup for the selected day(s).",
+    "errorTitle": "Could not save absence",
+    "openCta": "Mark absent",
+    "absentToday": "Absent today",
+    "absentUntil": "Absent until {{date}}",
+    "cancelTitle": "Cancel absence?",
+    "cancelBody": "The bus will resume picking up your child.",
+    "cancelConfirm": "Cancel absence",
+    "keep": "Keep",
+    "historyTitle": "Absence history",
+    "historyEmpty": "No past absences yet.",
+    "statusPast": "Past",
+    "statusCancelled": "Cancelled",
+    "reason": {
+      "sick": "Sick",
+      "wont_attend": "Won't attend",
+      "appointment": "Appointment",
+      "other": "Other"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "markedToast": "All notifications marked as read",
+    "markFailed": "Could not mark as read",
+    "unreadCount": "{{count}} unread",
+    "unreadCount_other": "{{count}} unread",
+    "emptyTitle": "No notifications yet",
+    "emptyMessage": "You will see updates about your child's trips here.",
+    "filters": {
+      "all": "All",
+      "alerts": "Alerts",
+      "updates": "Trips",
+      "system": "System"
+    }
+  },
+  "trips": {
+    "title": "Trip History",
+    "emptyTitle": "No trips yet",
+    "emptyMessage": "Past and upcoming trips will appear here.",
+    "todayTrip": "Today's trip",
+    "pickup": "Pickup",
+    "dropoff": "Drop-off",
+    "callShort": "Call",
+    "filters": {
+      "all": "All",
+      "completed": "Completed",
+      "upcoming": "Upcoming"
+    },
+    "tripCount": "{{count}} trip",
+    "tripCount_other": "{{count}} trips",
+    "status": {
+      "completed": "Completed",
+      "upcoming": "Upcoming",
+      "cancelled": "Cancelled",
+      "ongoing": "Ongoing"
+    }
+  },
+  "sos": {
+    "title": "SOS",
+    "alertSent": "Alert sent",
+    "holdToConfirm": "Hold to confirm",
+    "pressAndHold": "Press & hold",
+    "hold": "Hold…",
+    "emergencyAlert": "Emergency Alert",
+    "sentBody": "The school administration and driver have been notified. Stay on this screen for updates.",
+    "instructions": "Press and hold the button for 2 seconds to alert the school and driver. This is for genuine emergencies only.",
+    "sentToast": "SOS alert sent to school and driver",
+    "sentAt": "Sent at {{time}}",
+    "failedToast": "Could not reach the server. We will retry.",
+    "a11yReset": "Reset SOS",
+    "a11yHold": "Hold to send SOS",
+    "a11yHint": "Press and hold for 2 seconds to send",
+    "a11yHolding": "Holding to confirm SOS",
+    "a11ySent": "SOS alert sent"
+  },
+  "delete": {
+    "title": "Delete account",
+    "warningTitle": "This is permanent",
+    "warningBody": "We will immediately delete\n• your profile (name, email, phone)\n• your linked children\n• your notification history\n• your trip history\n\nAnonymised safety records may be retained for up to 30 days as required by law. After that, all your data is gone for good.",
+    "typeToConfirm": "Type {{phrase}} to confirm",
+    "confirmTitle": "Confirm deletion",
+    "confirmBody": "Please type {{phrase}} to confirm.",
+    "askAgain": "Delete your account?",
+    "askAgainBody": "This permanently deletes your profile, your linked children, and your trip history. This cannot be undone.",
+    "deleteCta": "Delete my account",
+    "deleted": "Your account has been deleted.",
+    "failed": "Could not delete your account. Please contact support."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: April 2026",
+    "collect": {
+      "title": "What we collect",
+      "body": "• Account data — name, email, phone — to identify you and let the driver/school reach you.\n• Children — name, school, route, photo (optional). Provided by you and visible only to you, your school, and the assigned driver.\n• Live location of the bus — sent by the driver's device. Your phone's own location is used only to center the map and is never sent to our servers.\n• Device + crash data — anonymous diagnostics to keep the app stable."
+    },
+    "noCollect": {
+      "title": "What we do NOT collect",
+      "body": "We do not access your contacts, photos, microphone, calendar, health data, or browsing history. We do not track you across other apps or websites. We do not sell your data — ever."
+    },
+    "use": {
+      "title": "How we use it",
+      "body": "Strictly to operate the service: show you where the bus is, notify you about boarding and drop-off, let you reach the driver, and send safety alerts. No advertising, no profiling."
+    },
+    "sharing": {
+      "title": "Sharing",
+      "body": "Your data is shared only with: (a) your child's school/transport company, (b) the assigned driver (name + bus only), and (c) infrastructure providers (hosting, push notifications) bound by data-processing agreements."
+    },
+    "rights": {
+      "title": "Your rights",
+      "body": "You can access, correct or delete your data at any time from Profile → Delete account. Deletion is permanent and processed within 30 days. You can also email privacy@ecobus.app."
+    },
+    "retention": {
+      "title": "Retention",
+      "body": "Account data is kept while your account is active. Trip history is kept for 12 months for safety review, then deleted. Bus GPS pings are kept for 30 days."
+    },
+    "children": {
+      "title": "Children",
+      "body": "EcoBus is operated by parents/guardians on behalf of their children. Children do not interact with the app directly. Data about minors is processed under parental consent."
+    },
+    "contact": {
+      "title": "Contact",
+      "body": "privacy@ecobus.app"
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: April 2026",
+    "s1": { "h": "1. Service", "p": "EcoBus is a school-transport tracking service offered to parents/guardians through their child's school or transport company. Use of the app constitutes acceptance of these terms." },
+    "s2": { "h": "2. Account", "p": "You are responsible for keeping your login credentials secure and for the accuracy of the information you provide." },
+    "s3": { "h": "3. Permitted use", "p": "You agree to use EcoBus only to monitor your own child's transport. You may not reverse engineer the app, scrape its data, or use it to harass drivers or other users." },
+    "s4": { "h": "4. Safety alerts", "p": "Notifications and the SOS feature are provided on a best-effort basis and depend on network availability. Do not rely on EcoBus alone in emergencies — always also call local emergency services." },
+    "s5": { "h": "5. Termination", "p": "You may delete your account at any time from Profile → Delete account. We may suspend accounts that violate these terms." },
+    "s6": { "h": "6. Liability", "p": "EcoBus is provided \"as is\". To the maximum extent permitted by law, we disclaim all implied warranties." },
+    "s7": { "h": "7. Contact", "p": "support@ecobus.app" }
+  },
+  "errors": {
+    "boundaryTitle": "Something went wrong",
+    "boundaryBody": "We hit an unexpected problem. The team has been notified. You can try again — your data is safe.",
+    "boundaryHint": "If this keeps happening, try restarting the app.",
+    "network": "No connection. Check your network.",
+    "unauthorized": "Session expired. Please log in again.",
+    "forbidden": "Action not allowed.",
+    "notFound": "Resource not found.",
+    "conflict": "Conflict: operation not possible.",
+    "invalidInput": "Invalid data.",
+    "rateLimited": "Too many attempts. Try again later.",
+    "server": "Server error. Try again later.",
+    "unknown": "Something went wrong.",
+    "sosFailed": "Could not send SOS"
+  },
+  "map": {
+    "trackLive": "Track live",
+    "openTracking": "Open live tracking"
+  },
+  "eta": {
+    "now":            "Arriving now",
+    "soon":           "Arriving soon",
+    "approxMin":      "~{{count}} min",
+    "approxHour":     "~{{count}}h",
+    "approxHourMin":  "~{{h}}h {{m}}m"
+  },
+  "tracking": {
+    "driver":             "Driver",
+    "assignedDriver":     "Assigned driver",
+    "callDriver":         "Call driver",
+    "callDriverNamed":    "Call driver {{name}}",
+    "driverPhoneMissing": "Driver phone is not available right now.",
+    "emergencySos":       "Emergency SOS",
+    "nextStop":           "Next Stop",
+    "eta":                "ETA",
+    "distance":           "Distance",
+    "status":             "Status",
+    "onTheWayToSchool":   "On the way to school",
+    "connecting":         "Connecting",
+    "live":               "Live",
+    "reconnecting":       "Reconnecting (using last known)",
+    "offline":            "Offline",
+    "busStatus": {
+      "moving":         "Moving",
+      "on_route":       "On route",
+      "active":         "Active",
+      "in_service":     "In service",
+      "stopped":        "Stopped",
+      "idle":           "Idle",
+      "paused":         "Paused",
+      "offline":        "Offline",
+      "out_of_service": "Out of service",
+      "maintenance":    "Maintenance"
+    }
+  },
+  "notifPrefs": {
+    "title":             "Notification Preferences",
+    "masterToggle":      "Push Notifications",
+    "masterToggleSub":   "Receive alerts for all trip & safety updates",
+    "trips":             "Trip Updates",
+    "boarded":           "Child boarded",
+    "boardedSub":        "When your child gets on the bus",
+    "droppedOff":        "Child dropped off",
+    "droppedOffSub":     "When your child arrives at destination",
+    "etaReminder":       "ETA reminder",
+    "etaReminderSub":    "15 minutes before the bus arrives",
+    "alerts":            "Alerts",
+    "delay":             "Bus delays",
+    "delaySub":          "When the bus is running late",
+    "routeChange":       "Route changes",
+    "routeChangeSub":    "When your child's route is modified",
+    "safety":            "Safety",
+    "safetyNote":        "Emergency alerts cannot be turned off",
+    "emergency":         "Emergency alerts",
+    "emergencySub":      "SOS and critical safety notifications",
+    "alwaysOn":          "Always on",
+    "quietHours":        "Quiet Hours",
+    "quietHoursToggle":  "Enable quiet hours",
+    "quietHoursSub":     "Mute non-urgent notifications during this period",
+    "from":              "From",
+    "to":                "To"
+  },
+  "childrenSchools": {
+    "title":        "Children & Schools",
+    "subtitle":     "Your children's school and transport assignments",
+    "noChildren":   "No children linked",
+    "noChildrenHint": "Contact your school to link your children's profiles.",
+    "school":       "School",
+    "route":        "Route",
+    "bus":          "Bus",
+    "driver":       "Driver",
+    "pickup":       "Pickup stop",
+    "dropoff":      "Drop-off stop",
+    "viewMap":      "View on map",
+    "markAbsent":   "Mark absent",
+    "grade":        "Grade {{grade}}",
+    "unassigned":   "Not assigned",
+    "noActiveTrip": "No active trip right now"
+  }
+}

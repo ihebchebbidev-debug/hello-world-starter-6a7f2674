@@ -1,0 +1,146 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "back": "Back",
+    "save": "Save",
+    "loading": "Loading…",
+    "tryAgain": "Try Again",
+    "or": "or",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "close": "Close",
+    "logout": "Logout"
+  },
+  "input": {
+    "show": "Show",
+    "hide": "Hide",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
+  "errors": {
+    "boundaryTitle": "Something went wrong",
+    "boundaryBody": "An unexpected error occurred. Try restarting the screen.",
+    "boundaryHint": "If the issue persists, restart the app.",
+    "loadFailed": "Failed to load",
+    "network": "No connection. Check your network.",
+    "unauthorized": "Session expired. Please log in again.",
+    "forbidden": "Action not allowed.",
+    "notFound": "Resource not found.",
+    "conflict": "Conflict: operation not possible.",
+    "invalidInput": "Invalid data.",
+    "rateLimited": "Too many attempts. Try again later.",
+    "server": "Server error. Try again later.",
+    "unknown": "Something went wrong.",
+    "boardingFailed": "Could not record boarding",
+    "sosFailed": "Could not send SOS",
+    "tripStartFailed": "Could not start service",
+    "tripEndFailed": "Could not end service"
+  },
+  "splash": {
+    "tagline": "Driver App",
+    "subtitle": "School transport — driver edition"
+  },
+  "login": {
+    "welcome": "Driver Login",
+    "subtitle": "Enter your credentials to access your route",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "loginBtn": "Sign In",
+    "demoAccess": "Demo Access",
+    "errors": {
+      "invalidEmail": "Enter a valid email address",
+      "invalidPassword": "Password must be at least 6 characters",
+      "invalidCredentials": "Invalid email or password"
+    }
+  },
+  "tabs": {
+    "assignment": "Today",
+    "map": "Map",
+    "boarding": "Boarding",
+    "notifications": "Alerts",
+    "profile": "Profile"
+  },
+  "assignment": {
+    "title": "Today's Route",
+    "noAssignment": "No route today",
+    "noAssignmentBody": "You have no assignment scheduled for today.",
+    "routeLabel": "Route",
+    "busLabel": "Bus",
+    "hoursLabel": "Hours",
+    "childrenLabel": "Children",
+    "statusNotStarted": "Not started",
+    "statusInProgress": "In progress",
+    "statusCompleted": "Completed",
+    "stops": "Stops",
+    "capacity": "Capacity",
+    "startService": "Start Service",
+    "endService": "End Service",
+    "confirmEnd": "End service?",
+    "confirmEndBody": "This will stop GPS tracking and mark the route as completed.",
+    "serviceStarted": "Service started",
+    "serviceEnded": "Service completed"
+  },
+  "map": {
+    "title": "Map & Route",
+    "nextStop": "Next stop",
+    "distance": "Distance",
+    "eta": "ETA",
+    "navigate": "Navigate",
+    "gpsActive": "GPS active",
+    "gpsWeak": "Weak signal",
+    "gpsOff": "Offline",
+    "noService": "Start service to activate GPS tracking",
+    "km": "km",
+    "min": "min",
+    "navigationError": "Navigation",
+    "navigationErrorBody": "Could not open maps app"
+  },
+  "boarding": {
+    "title": "Boarding",
+    "stop": "Stop",
+    "children": "children",
+    "notBoarded": "Not boarded",
+    "boarded": "Boarded",
+    "dropped": "Dropped",
+    "markBoarded": "Mark boarded",
+    "markDropped": "Mark dropped",
+    "allBoarded": "All children boarded",
+    "noChildren": "No children on this route"
+  },
+  "notifications": {
+    "title": "Alerts",
+    "empty": "No alerts",
+    "emptyBody": "You have no notifications at the moment.",
+    "markAllRead": "Mark all read",
+    "timeNow": "now",
+    "timeMins": "{{m}}m",
+    "timeHours": "{{h}}h",
+    "timeDays": "{{d}}d"
+  },
+  "profile": {
+    "title": "Profile",
+    "driver": "Driver",
+    "bus": "Bus",
+    "busNumber": "Bus number",
+    "plate": "Plate",
+    "capacity": "Capacity",
+    "seats": "seats",
+    "phone": "Phone",
+    "license": "License",
+    "model": "Model",
+    "language": "Language",
+    "logoutConfirm": "Sign out?",
+    "logoutConfirmBody": "You will need to sign in again to access your route."
+  },
+  "sos": {
+    "title": "SOS Emergency",
+    "instruction": "Hold the button for 2 seconds to send an emergency alert",
+    "holding": "Hold…",
+    "sent": "Alert sent",
+    "sentBody": "Parents and admin have been notified.",
+    "cancel": "Cancel",
+    "send": "Send SOS"
+  }
+}

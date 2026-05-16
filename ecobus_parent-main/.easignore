@@ -1,0 +1,42 @@
+# Patterns here are excluded from the EAS Build upload tarball.
+# Mirrors .gitignore plus things we never want to ship to the build worker.
+
+node_modules/
+.expo/
+.expo-shared/
+dist/
+build/
+coverage/
+.next/
+
+# Native build artifacts (built fresh on the EAS worker)
+android/app/build/
+android/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+ios/build/
+ios/Pods/
+ios/DerivedData/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Local env / secrets — EAS injects env vars from eas.json + EAS Secrets
+.env
+.env.*
+!.env.example
+secrets/
+*.keystore
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+GoogleService-Info.plist.local
+google-services.json.local
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.log

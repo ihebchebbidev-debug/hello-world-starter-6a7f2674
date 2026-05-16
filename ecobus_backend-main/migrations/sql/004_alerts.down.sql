@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS geofences;
+DROP TABLE IF EXISTS alerts;
+DROP TABLE IF EXISTS sos_alerts;
+DROP TABLE IF EXISTS device_tokens;
+DROP TABLE IF EXISTS notifications;

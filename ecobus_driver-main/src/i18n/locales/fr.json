@@ -1,0 +1,146 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Annuler",
+    "back": "Retour",
+    "save": "Enregistrer",
+    "loading": "Chargement…",
+    "tryAgain": "Réessayer",
+    "or": "ou",
+    "yes": "Oui",
+    "no": "Non",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "logout": "Déconnexion"
+  },
+  "input": {
+    "show": "Afficher",
+    "hide": "Masquer",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe"
+  },
+  "errors": {
+    "boundaryTitle": "Une erreur est survenue",
+    "boundaryBody": "Une erreur inattendue s'est produite. Essayez de relancer l'écran.",
+    "boundaryHint": "Si le problème persiste, relancez l'application.",
+    "loadFailed": "Chargement échoué",
+    "network": "Pas de connexion. Vérifiez votre réseau.",
+    "unauthorized": "Session expirée. Veuillez vous reconnecter.",
+    "forbidden": "Action non autorisée.",
+    "notFound": "Ressource introuvable.",
+    "conflict": "Conflit : opération impossible.",
+    "invalidInput": "Données invalides.",
+    "rateLimited": "Trop de tentatives. Réessayez plus tard.",
+    "server": "Erreur serveur. Réessayez plus tard.",
+    "unknown": "Une erreur est survenue.",
+    "boardingFailed": "Impossible d'enregistrer l'embarquement",
+    "sosFailed": "Impossible d'envoyer le SOS",
+    "tripStartFailed": "Impossible de démarrer le service",
+    "tripEndFailed": "Impossible de terminer le service"
+  },
+  "splash": {
+    "tagline": "Application Chauffeur",
+    "subtitle": "Transport scolaire — édition chauffeur"
+  },
+  "login": {
+    "welcome": "Connexion Chauffeur",
+    "subtitle": "Entrez vos identifiants pour accéder à votre itinéraire",
+    "emailLabel": "Email",
+    "passwordLabel": "Mot de passe",
+    "loginBtn": "Se connecter",
+    "demoAccess": "Accès démo",
+    "errors": {
+      "invalidEmail": "Entrez une adresse email valide",
+      "invalidPassword": "Le mot de passe doit contenir au moins 6 caractères",
+      "invalidCredentials": "Email ou mot de passe incorrect"
+    }
+  },
+  "tabs": {
+    "assignment": "Aujourd'hui",
+    "map": "Carte",
+    "boarding": "Embarquement",
+    "notifications": "Alertes",
+    "profile": "Profil"
+  },
+  "assignment": {
+    "title": "Itinéraire du jour",
+    "noAssignment": "Aucun itinéraire aujourd'hui",
+    "noAssignmentBody": "Vous n'avez aucune mission prévue pour aujourd'hui.",
+    "routeLabel": "Ligne",
+    "busLabel": "Bus",
+    "hoursLabel": "Horaires",
+    "childrenLabel": "Enfants",
+    "statusNotStarted": "Non démarré",
+    "statusInProgress": "En cours",
+    "statusCompleted": "Terminé",
+    "stops": "Arrêts",
+    "capacity": "Capacité",
+    "startService": "Démarrer le service",
+    "endService": "Terminer le service",
+    "confirmEnd": "Terminer le service ?",
+    "confirmEndBody": "Cela arrêtera le suivi GPS et marquera l'itinéraire comme terminé.",
+    "serviceStarted": "Service démarré",
+    "serviceEnded": "Service terminé"
+  },
+  "map": {
+    "title": "Carte & Itinéraire",
+    "nextStop": "Prochain arrêt",
+    "distance": "Distance",
+    "eta": "Arrivée estimée",
+    "navigate": "Naviguer",
+    "gpsActive": "GPS actif",
+    "gpsWeak": "Signal faible",
+    "gpsOff": "Hors ligne",
+    "noService": "Démarrez le service pour activer le suivi GPS",
+    "km": "km",
+    "min": "min",
+    "navigationError": "Navigation",
+    "navigationErrorBody": "Impossible d'ouvrir l'application de cartes"
+  },
+  "boarding": {
+    "title": "Embarquement",
+    "stop": "Arrêt",
+    "children": "enfants",
+    "notBoarded": "Non embarqué",
+    "boarded": "Embarqué",
+    "dropped": "Déposé",
+    "markBoarded": "Marquer embarqué",
+    "markDropped": "Marquer déposé",
+    "allBoarded": "Tous les enfants sont embarqués",
+    "noChildren": "Aucun enfant sur cet itinéraire"
+  },
+  "notifications": {
+    "title": "Alertes",
+    "empty": "Aucune alerte",
+    "emptyBody": "Vous n'avez aucune notification pour le moment.",
+    "markAllRead": "Tout marquer comme lu",
+    "timeNow": "maintenant",
+    "timeMins": "{{m}} min",
+    "timeHours": "{{h}} h",
+    "timeDays": "{{d}} j"
+  },
+  "profile": {
+    "title": "Profil",
+    "driver": "Chauffeur",
+    "bus": "Bus",
+    "busNumber": "Numéro de bus",
+    "plate": "Immatriculation",
+    "capacity": "Capacité",
+    "seats": "places",
+    "phone": "Téléphone",
+    "license": "Permis",
+    "model": "Modèle",
+    "language": "Langue",
+    "logoutConfirm": "Se déconnecter ?",
+    "logoutConfirmBody": "Vous devrez vous reconnecter pour accéder à votre itinéraire."
+  },
+  "sos": {
+    "title": "SOS Urgence",
+    "instruction": "Maintenez le bouton 2 secondes pour envoyer une alerte d'urgence",
+    "holding": "Maintenir…",
+    "sent": "Alerte envoyée",
+    "sentBody": "Les parents et l'administration ont été notifiés.",
+    "cancel": "Annuler",
+    "send": "Envoyer SOS"
+  }
+}

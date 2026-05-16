@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS checkins;
+DROP TABLE IF EXISTS stop_events;
+DROP TABLE IF EXISTS gps_logs;
+DROP TABLE IF EXISTS bus_live_status;
+DROP TABLE IF EXISTS trips;
+DROP TABLE IF EXISTS child_routes;
+DROP TABLE IF EXISTS children;

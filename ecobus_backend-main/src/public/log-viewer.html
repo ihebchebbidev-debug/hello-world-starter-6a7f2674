@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EcoBus — Backend Logs</title>
+<style>
+  :root {
+    --bg: #0b1020; --panel: #11172b; --border: #1f2942;
+    --text: #e6ecff; --muted: #8a93b3; --accent: #16a34a;
+    --error: #ef4444; --warn: #f59e0b; --info: #3b82f6; --debug: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 13px/1.45 -apple-system, "SF Mono", ui-monospace, Menlo, monospace; }
+  header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 10px 14px; background: var(--panel); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+  header h1 { font-size: 14px; margin: 0 12px 0 0; font-weight: 600; letter-spacing: .3px; }
+  header .stat { color: var(--muted); margin-left: auto; font-size: 12px; }
+  input, select, button {
+    background: #0d1426; color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 10px; font: inherit; outline: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: white; }
+  button.primary:hover { filter: brightness(1.05); }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+  main { padding: 0; }
+  .row { display: grid; grid-template-columns: 170px 70px 1fr; gap: 12px;
+    padding: 6px 14px; border-bottom: 1px solid #141b30; align-items: start; word-break: break-word; }
+  .row:hover { background: #0e1428; }
+  .ts { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .lvl { text-transform: uppercase; font-weight: 700; font-size: 11px; padding: 1px 8px; border-radius: 999px; text-align: center; }
+  .lvl.error { background: rgba(239,68,68,.15); color: var(--error); }
+  .lvl.warn  { background: rgba(245,158,11,.15); color: var(--warn); }
+  .lvl.info  { background: rgba(59,130,246,.15); color: var(--info); }
+  .lvl.debug,.lvl.verbose { background: rgba(167,139,250,.15); color: var(--debug); }
+  .msg { white-space: pre-wrap; }
+  .meta { color: var(--muted); margin-top: 2px; font-size: 12px; }
+  .empty { padding: 60px; text-align: center; color: var(--muted); }
+  .pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4b5570; margin-right: 6px; }
+  .pulse.live { background: var(--accent); box-shadow: 0 0 0 0 rgba(22,163,74,.7); animation: p 1.4s infinite; }
+  @keyframes p { 70% { box-shadow: 0 0 0 8px rgba(22,163,74,0); } 100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🪵 EcoBus Logs</h1>
+  <input id="token" type="password" placeholder="Log token" style="width:160px" />
+  <select id="level">
+    <option value="all">all levels</option>
+    <option value="error">error</option>
+    <option value="warn">warn</option>
+    <option value="info">info</option>
+    <option value="debug">debug</option>
+  </select>
+  <input id="search" placeholder="Search (substring)…" style="width:220px" />
+  <select id="limit">
+    <option>100</option><option selected>200</option>
+    <option>500</option><option>1000</option>
+  </select>
+  <button id="refresh" class="primary">Refresh</button>
+  <label class="toggle"><input id="auto" type="checkbox" checked /> Auto (5s)</label>
+  <label class="toggle"><input id="live" type="checkbox" /> Live tail</label>
+  <span class="stat"><span id="dot" class="pulse"></span><span id="count">0 entries</span></span>
+</header>
+<main id="rows"><div class="empty">Enter your log token above and click Refresh.</div></main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const rows = $('rows'), countEl = $('count'), dot = $('dot');
+
+  // Persist token in localStorage
+  $('token').value = localStorage.getItem('logToken') || new URLSearchParams(location.search).get('token') || '';
+  $('token').addEventListener('change', () => localStorage.setItem('logToken', $('token').value));
+
+  const fmtTime = (ts) => ts ? new Date(ts).toISOString().replace('T',' ').replace('Z','') : '';
+  const renderRow = (e) => {
+    const { timestamp, level = 'info', message = '', service, ...rest } = e;
+    delete rest.raw;
+    const meta = Object.keys(rest).length ? `<div class="meta">${escape(JSON.stringify(rest))}</div>` : '';
+    return `<div class="row">
+      <div class="ts">${fmtTime(timestamp)}</div>
+      <div class="lvl ${level}">${level}</div>
+      <div><div class="msg">${escape(message)}</div>${meta}</div>
+    </div>`;
+  };
+  const escape = (s) => String(s).replace(/[&<>]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+  let timer = null, sse = null;
+
+  async function refresh() {
+    const token = $('token').value.trim();
+    if (!token) { rows.innerHTML = '<div class="empty">Token required.</div>'; return; }
+    const params = new URLSearchParams({
+      token, level: $('level').value, search: $('search').value, limit: $('limit').value,
+    });
+    try {
+      const r = await fetch(`./tail?${params}`);
+      if (!r.ok) {
+        rows.innerHTML = `<div class="empty">Error ${r.status}: ${await r.text()}</div>`; return;
+      }
+      const { entries } = await r.json();
+      countEl.textContent = `${entries.length} entries`;
+      rows.innerHTML = entries.length
+        ? entries.map(renderRow).join('')
+        : '<div class="empty">No matching entries.</div>';
+    } catch (err) {
+      rows.innerHTML = `<div class="empty">Network error: ${escape(err.message)}</div>`;
+    }
+  }
+
+  function setupAuto() {
+    if (timer) clearInterval(timer);
+    if ($('auto').checked && !$('live').checked) timer = setInterval(refresh, 5000);
+  }
+
+  function setupLive() {
+    if (sse) { sse.close(); sse = null; dot.classList.remove('live'); }
+    if (!$('live').checked) return;
+    const token = $('token').value.trim();
+    if (!token) return;
+    sse = new EventSource(`./stream?token=${encodeURIComponent(token)}`);
+    dot.classList.add('live');
+    sse.onmessage = (ev) => {
+      try {
+        const e = JSON.parse(ev.data);
+        // Filter client-side to match current view
+        const lvl = $('level').value, q = $('search').value.toLowerCase();
+        if (lvl !== 'all' && (e.level || '').toLowerCase() !== lvl) return;
+        if (q && !JSON.stringify(e).toLowerCase().includes(q)) return;
+        rows.insertAdjacentHTML('afterbegin', renderRow(e));
+      } catch {}
+    };
+    sse.onerror = () => { dot.classList.remove('live'); };
+  }
+
+  $('refresh').onclick = refresh;
+  ['level','search','limit'].forEach(id => $(id).addEventListener('change', refresh));
+  $('auto').addEventListener('change', setupAuto);
+  $('live').addEventListener('change', () => { setupAuto(); setupLive(); });
+
+  // Auto-load if token already saved
+  if ($('token').value) { refresh(); setupAuto(); }
+</script>
+</body>
+</html>

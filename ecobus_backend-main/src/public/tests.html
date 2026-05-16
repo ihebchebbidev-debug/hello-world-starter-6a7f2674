@@ -1,0 +1,1178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>EcoBus V2 — End-to-end Test Runner</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    --bg:#0f172a; --panel:#111c33; --border:#1f2a44;
+    --fg:#e6edf7; --muted:#8aa0c2;
+    --ok:#22c55e; --err:#ef4444; --warn:#f59e0b; --info:#3b82f6;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.5 system-ui,Segoe UI,Roboto,sans-serif;
+         background:var(--bg); color:var(--fg); }
+  header { padding:20px 28px; border-bottom:1px solid var(--border);
+           display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  header h1 { margin:0; font-size:18px; font-weight:600; }
+  header .sub { color:var(--muted); font-size:12px; }
+  main { padding:20px 28px; max-width:1100px; margin:0 auto; }
+  .controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+              background:var(--panel); border:1px solid var(--border);
+              border-radius:10px; padding:14px; margin-bottom:18px; }
+  .controls label { color:var(--muted); font-size:12px; display:flex; flex-direction:column; gap:4px; }
+  .controls input { background:#0b1428; color:var(--fg); border:1px solid var(--border);
+                    border-radius:6px; padding:8px 10px; min-width:240px; font:inherit; }
+  button { background:var(--info); color:white; border:0; border-radius:8px;
+           padding:10px 18px; font:600 14px/1 system-ui; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:not-allowed; }
+  button.secondary { background:#1f2a44; }
+  .summary { display:flex; gap:16px; margin:14px 0; flex-wrap:wrap; }
+  .pill { padding:6px 12px; border-radius:999px; font-size:12px; font-weight:600;
+          background:#1f2a44; color:var(--muted); }
+  .pill.ok { background:rgba(34,197,94,.15); color:var(--ok); }
+  .pill.err { background:rgba(239,68,68,.15); color:var(--err); }
+  .pill.warn { background:rgba(245,158,11,.15); color:var(--warn); }
+  table { width:100%; border-collapse:collapse; background:var(--panel);
+          border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { background:#0b1428; color:var(--muted); font-weight:600; font-size:12px;
+       text-transform:uppercase; letter-spacing:.04em; }
+  tr:last-child td { border-bottom:0; }
+  td.status { width:90px; font-weight:700; }
+  td.status.ok { color:var(--ok); }
+  td.status.err { color:var(--err); }
+  td.status.skip { color:var(--warn); }
+  td.dur { width:80px; color:var(--muted); }
+  td.code { width:80px; color:var(--muted); font-family:ui-monospace,monospace; }
+  td.detail pre { margin:0; white-space:pre-wrap; word-break:break-word;
+                  color:var(--muted); font-size:12px; max-height:120px; overflow:auto; }
+  .group-header td { background:#0b1428; font-weight:700; color:#cdd9ee; }
+  footer { padding:16px 28px; color:var(--muted); font-size:12px; text-align:center; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>EcoBus V2 — End-to-end test runner</h1>
+    <div class="sub">Hits the live API on this host using the seeded demo accounts.</div>
+  </div>
+  <div class="sub" id="hostInfo"></div>
+</header>
+
+<main>
+  <div class="controls">
+    <label>API base
+      <input id="apiBase" value="/api/v1" />
+    </label>
+    <label>Admin email
+      <input id="adminEmail" value="admin@demo.demo" />
+    </label>
+    <label>Driver email
+      <input id="driverEmail" value="driver@ecobus.demo" />
+    </label>
+    <label>Parent email
+      <input id="parentEmail" value="parent@ecobus.demo" />
+    </label>
+    <label>Password
+      <input id="password" value="Admin@1234" />
+    </label>
+    <div style="flex:1"></div>
+    <button id="seedBtn" class="secondary" type="button" title="Re-create demo orgs, users, buses, routes, trips">🌱 Seed demo data</button>
+    <button id="runBtn">▶ Run all tests</button>
+    <button id="clearBtn" class="secondary" type="button">Clear</button>
+  </div>
+
+  <div class="summary">
+    <span class="pill" id="pTotal">0 tests</span>
+    <span class="pill ok" id="pOk">0 passed</span>
+    <span class="pill err" id="pErr">0 failed</span>
+    <span class="pill warn" id="pSkip">0 skipped</span>
+    <span class="pill" id="pTime">0 ms</span>
+    <span class="pill" id="pLast" style="background:#1f2a44;color:var(--muted);">last run: —</span>
+  </div>
+
+  <div id="dashboard" style="display:none;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <strong style="font-size:13px;">📊 Per-endpoint summary</strong>
+      <span class="sub" id="dashMeta" style="color:var(--muted);font-size:12px;"></span>
+    </div>
+    <div id="dashGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;"></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Test</th>
+        <th>Status</th>
+        <th>Code</th>
+        <th>Time</th>
+        <th>Detail</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</main>
+
+<footer>
+  Run from <code id="footHost"></code>. The runner is read-mostly: it creates a
+  short-lived test trip + GPS pings + an SOS alert under the seeded demo org.
+</footer>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const tbody = $('tbody');
+  const host = location.host;
+  $('hostInfo').textContent = host;
+  $('footHost').textContent = host;
+
+  const state = { rows: [], startedAt: 0 };
+
+  const summary = () => {
+    const total = state.rows.length;
+    const ok = state.rows.filter(r => r.status === 'ok').length;
+    const err = state.rows.filter(r => r.status === 'err').length;
+    const skip = state.rows.filter(r => r.status === 'skip').length;
+    $('pTotal').textContent = total + ' tests';
+    $('pOk').textContent = ok + ' passed';
+    $('pErr').textContent = err + ' failed';
+    $('pSkip').textContent = skip + ' skipped';
+    $('pTime').textContent = (Date.now() - state.startedAt) + ' ms';
+  };
+
+  const addGroup = (label) => {
+    const tr = document.createElement('tr');
+    tr.className = 'group-header';
+    tr.innerHTML = `<td colspan="6">${label}</td>`;
+    tbody.appendChild(tr);
+  };
+
+  const addRow = (name) => {
+    const tr = document.createElement('tr');
+    const idx = state.rows.length + 1;
+    tr.innerHTML = `
+      <td>${idx}</td>
+      <td>${name}</td>
+      <td class="status">…</td>
+      <td class="code"></td>
+      <td class="dur"></td>
+      <td class="detail"></td>`;
+    tbody.appendChild(tr);
+    const row = { tr, name, status: 'pending' };
+    state.rows.push(row);
+    return row;
+  };
+
+  const setRow = (row, status, { code, ms, detail } = {}) => {
+    row.status = status;
+    const cells = row.tr.children;
+    cells[2].className = 'status ' + status;
+    cells[2].textContent = status === 'ok' ? 'PASS' : status === 'err' ? 'FAIL' : 'SKIP';
+    if (code != null) cells[3].textContent = code;
+    if (ms != null) cells[4].textContent = ms + ' ms';
+    if (detail) {
+      const pre = document.createElement('pre');
+      pre.textContent = typeof detail === 'string' ? detail : JSON.stringify(detail, null, 2);
+      cells[5].innerHTML = '';
+      cells[5].appendChild(pre);
+    }
+    summary();
+  };
+
+  const apiBase = () => $('apiBase').value.replace(/\/+$/, '');
+
+  const call = async (method, path, { token, body, query } = {}) => {
+    const t0 = performance.now();
+    const url = apiBase() + path + (query ? '?' + new URLSearchParams(query) : '');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = 'Bearer ' + token;
+    const res = await fetch(url, {
+      method, headers,
+      body: body == null ? undefined : JSON.stringify(body),
+    });
+    const text = await res.text();
+    let json = null;
+    try { json = text ? JSON.parse(text) : null; } catch { /* non-json */ }
+    return { ok: res.ok, status: res.status, json, text, ms: Math.round(performance.now() - t0) };
+  };
+
+  // Tries the standard envelope { success, data } and falls back to raw body.
+  const unwrap = (res) => (res.json && res.json.data !== undefined ? res.json.data : res.json);
+
+  // ───────────────────────── Test runner ─────────────────────────
+  const run = async () => {
+    state.rows = [];
+    state.startedAt = Date.now();
+    tbody.innerHTML = '';
+    summary();
+
+    const ctx = {};
+
+    // Run a step. Returns the resolved value from `fn` (or undefined on
+    // failure). Failures are reported in the row but never thrown to the
+    // caller, so test ordering is never disrupted.
+    const runStep = async (name, fn) => {
+      const row = addRow(name);
+      try {
+        const r = await fn();
+        if (r && r.__skip) {
+          setRow(row, 'skip', { code: r.code, ms: r.ms, detail: r.detail });
+          return undefined;
+        }
+        setRow(row, 'ok', r || {});
+        return r;
+      } catch (e) {
+        setRow(row, e.__skip ? 'skip' : 'err', {
+          code: e.code,
+          ms: e.ms,
+          detail: e.detail || e.message || String(e),
+        });
+        return undefined;
+      }
+    };
+
+    const addSkipRow = (name, detail) => {
+      const row = addRow(name);
+      setRow(row, 'skip', { detail });
+    };
+
+    const expect = (res, name) => {
+      if (!res.ok) {
+        const err = new Error(`${name} failed (${res.status})`);
+        err.code = res.status;
+        err.ms = res.ms;
+        err.detail = res.json || res.text;
+        throw err;
+      }
+      return res;
+    };
+
+    // ─── Health & docs ───
+    addGroup('Health & docs');
+    await runStep('GET /health', async () => {
+      const r = await call('GET', '/health');
+      expect(r, 'health');
+      return { code: r.status, ms: r.ms, detail: unwrap(r) };
+    });
+    await runStep('GET /health/ready', async () => {
+      const r = await call('GET', '/health/ready');
+      // 503 (degraded) is acceptable info — surface report either way.
+      return { code: r.status, ms: r.ms, detail: unwrap(r) };
+    });
+    await runStep('GET /api/docs.json (root)', async () => {
+      const t0 = performance.now();
+      const res = await fetch('/api/docs.json');
+      const ms = Math.round(performance.now() - t0);
+      if (!res.ok) {
+        const e = new Error('docs not reachable'); e.code = res.status; e.ms = ms; throw e;
+      }
+      const j = await res.json();
+      return { code: res.status, ms, detail: { openapi: j.openapi, paths: Object.keys(j.paths || {}).length } };
+    });
+
+    // ─── Auth: admin / driver / parent ───
+    addGroup('Authentication');
+    const password = $('password').value;
+    const logins = [
+      { key: 'admin', email: $('adminEmail').value },
+      { key: 'driver', email: $('driverEmail').value },
+      { key: 'parent', email: $('parentEmail').value },
+    ];
+    for (const u of logins) {
+      await runStep(`POST /auth/login (${u.key})`, async () => {
+        const r = await call('POST', '/auth/login', { body: { email: u.email, password } });
+        expect(r, 'login');
+        const data = unwrap(r) || {};
+        const token = data.accessToken || data.token || data.access_token;
+        if (!token) {
+          const e = new Error('no access token in response'); e.code = r.status; e.ms = r.ms;
+          e.detail = data; throw e;
+        }
+        ctx[u.key] = { token, user: data.user };
+        return { code: r.status, ms: r.ms, detail: { user: data.user?.email } };
+      });
+    }
+    if (!ctx.admin) {
+      addGroup('Aborting — admin login failed (cannot continue without admin token)');
+      return;
+    }
+
+    await runStep('GET /auth/me (admin)', async () => {
+      const r = await call('GET', '/auth/me', { token: ctx.admin.token });
+      expect(r, 'me');
+      const data = unwrap(r);
+      return { code: r.status, ms: r.ms, detail: { id: data?.id, email: data?.email } };
+    });
+
+    // ─── Read-only resource fetches ───
+    addGroup('Read endpoints (admin)');
+    const readers = [
+      ['Buses',         '/buses'],
+      ['Routes',        '/routes'],
+      ['Drivers',       '/drivers'],
+      ['Children',      '/children'],
+      ['Trips active',  '/trips/active'],
+      ['Alerts',        '/alerts'],
+      ['Geofences',     '/geofences'],
+      ['SOS list',      '/sos'],
+    ];
+    for (const [name, path] of readers) {
+      await runStep(`GET ${path}`, async () => {
+        const r = await call('GET', path, { token: ctx.admin.token });
+        expect(r, name);
+        const data = unwrap(r);
+        const count = Array.isArray(data) ? data.length : (data?.items?.length ?? null);
+        ctx[name.toLowerCase()] = data;
+        return { code: r.status, ms: r.ms, detail: count != null ? { count } : data };
+      });
+    }
+
+    // /notifications is the *current user's* feed — admin's may be empty,
+    // so we just check the endpoint responds with an array.
+    await runStep('GET /notifications (parent)', async () => {
+      if (!ctx.parent) { const e = new Error('parent login missing'); e.__skip = true; throw e; }
+      const r = await call('GET', '/notifications', { token: ctx.parent.token });
+      expect(r, 'notifications');
+      const data = unwrap(r);
+      return { code: r.status, ms: r.ms, detail: { count: Array.isArray(data) ? data.length : 0 } };
+    });
+
+    // /devices is per-user; just make sure it returns 200.
+    await runStep('GET /devices (parent)', async () => {
+      if (!ctx.parent) { const e = new Error('parent login missing'); e.__skip = true; throw e; }
+      const r = await call('GET', '/devices', { token: ctx.parent.token });
+      expect(r, 'devices');
+      return { code: r.status, ms: r.ms, detail: unwrap(r) };
+    });
+
+    // ─── Trip lifecycle (admin-driven) + GPS + SOS ───
+    // We use the admin token for trip-start and GPS so the runner does not
+    // depend on the legacy seeded driver owning a route assignment. The
+    // GPS service still validates bus↔trip↔org consistency.
+    addGroup('Trip lifecycle, GPS ingestion, SOS');
+    const routes = Array.isArray(ctx.routes) ? ctx.routes : [];
+    let activeTrip = null;
+    let activeBusId = null;
+
+    await runStep('GET /trips/active', async () => {
+      const r = await call('GET', '/trips/active', { token: ctx.admin.token });
+      expect(r, 'trips/active');
+      const list = unwrap(r);
+      if (Array.isArray(list) && list.length) {
+        activeTrip = list[0];
+        activeBusId = activeTrip.bus_id || activeTrip.busId || null;
+      }
+      return { code: r.status, ms: r.ms,
+        detail: activeTrip ? { tripId: activeTrip.id, busId: activeBusId } : 'none' };
+    });
+
+    if (!activeTrip && routes[0]) {
+      await runStep('POST /trips/start (admin)', async () => {
+        const r = await call('POST', '/trips/start', {
+          token: ctx.admin.token,
+          body: { routeId: routes[0].id },
+        });
+        if (r.status === 409) {
+          return { code: r.status, ms: r.ms, detail: 'a trip is already active for this assignment (ok)' };
+        }
+        expect(r, 'trip start');
+        activeTrip = unwrap(r);
+        activeBusId = activeTrip?.bus_id || activeTrip?.busId || null;
+        return { code: r.status, ms: r.ms, detail: { tripId: activeTrip?.id, busId: activeBusId } };
+      });
+    }
+
+    // If we still don't know the bus_id (older trip rows without bus_id
+    // exposed), look it up from the assignment.
+    if (activeTrip && !activeBusId) {
+      await runStep('Resolve bus for active trip', async () => {
+        const r = await call('GET', '/buses', { token: ctx.admin.token });
+        expect(r, 'buses');
+        const buses = unwrap(r) || [];
+        // Best-effort: pick the first active bus.
+        const b = buses.find((x) => x.status === 'active') || buses[0];
+        activeBusId = b?.id || null;
+        return { code: r.status, ms: r.ms, detail: { busId: activeBusId } };
+      });
+    }
+
+    if (activeTrip && activeBusId) {
+      await runStep('POST /tracking/location (GPS ping, admin)', async () => {
+        const r = await call('POST', '/tracking/location', {
+          token: ctx.admin.token,
+          body: {
+            busId: activeBusId,
+            tripId: activeTrip.id,
+            latitude: 36.8065 + (Math.random() - 0.5) * 0.01,
+            longitude: 10.1815 + (Math.random() - 0.5) * 0.01,
+            speed: 30, heading: 90, accuracy: 5, batteryLevel: 80,
+          },
+        });
+        // 202 Accepted is expected on the optimised hot path.
+        if (r.status !== 202 && !r.ok) expect(r, 'gps ping');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) || 'accepted' };
+      });
+
+      await runStep('GET /gps/history?busId=…', async () => {
+        const r = await call('GET', '/gps/history', {
+          token: ctx.admin.token,
+          query: { busId: activeBusId, limit: 10 },
+        });
+        expect(r, 'gps history');
+        const data = unwrap(r);
+        return { code: r.status, ms: r.ms,
+          detail: { count: Array.isArray(data) ? data.length : data?.items?.length } };
+      });
+
+      await runStep('GET /gps/live/:busId', async () => {
+        const r = await call('GET', `/gps/live/${activeBusId}`, { token: ctx.admin.token });
+        expect(r, 'gps live');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+    } else {
+      addSkipRow('GPS ingestion + history', 'no active trip / bus available');
+    }
+
+    // SOS — parent (or admin fallback) triggers; tripId optional.
+    const sosToken = ctx.parent?.token || ctx.admin.token;
+    await runStep(`POST /sos (${ctx.parent ? 'parent' : 'admin'} triggers)`, async () => {
+      const body = {
+        latitude: 36.8065, longitude: 10.1815,
+        message: 'Automated test alert (safe to ignore)',
+      };
+      if (activeTrip?.id) body.tripId = activeTrip.id;
+      const r = await call('POST', '/sos', { token: sosToken, body });
+      expect(r, 'sos');
+      return { code: r.status, ms: r.ms, detail: unwrap(r) };
+    });
+
+    // Analytics — record an event (anonymous-friendly endpoint).
+    await runStep('POST /analytics/event', async () => {
+      const r = await call('POST', '/analytics/event', {
+        token: ctx.admin.token,
+        body: { eventType: 'test_runner.ping', metadata: { source: '/tests' } },
+      });
+      expect(r, 'analytics event');
+      return { code: r.status, ms: r.ms, detail: unwrap(r) };
+    });
+
+    // ───────────── Deep CRUD coverage (admin) ─────────────
+    // Creates resources, reads/updates them, then deletes — leaving the org clean.
+    addGroup('CRUD — Buses');
+    const rand = Math.random().toString(36).slice(2, 8);
+    let createdBusId = null;
+
+    await runStep('POST /buses (create)', async () => {
+      const r = await call('POST', '/buses', {
+        token: ctx.admin.token,
+        body: { name: `TestBus-${rand}`, plateNumber: `T-${rand}`, capacity: 30, status: 'active' },
+      });
+      expect(r, 'create bus');
+      const data = unwrap(r);
+      createdBusId = data?.id;
+      return { code: r.status, ms: r.ms, detail: { id: createdBusId } };
+    });
+
+    if (createdBusId) {
+      await runStep('GET /buses/:id', async () => {
+        const r = await call('GET', `/buses/${createdBusId}`, { token: ctx.admin.token });
+        expect(r, 'get bus');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+      await runStep('PATCH /buses/:id (rename)', async () => {
+        const r = await call('PATCH', `/buses/${createdBusId}`, {
+          token: ctx.admin.token,
+          body: { name: `TestBus-${rand}-edited`, capacity: 35 },
+        });
+        expect(r, 'patch bus');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+      await runStep('POST /buses (duplicate plate → 409/422)', async () => {
+        const r = await call('POST', '/buses', {
+          token: ctx.admin.token,
+          body: { name: 'dup', plateNumber: `T-${rand}`, capacity: 10 },
+        });
+        if (r.status < 400) {
+          const e = new Error('expected 4xx on duplicate plate'); e.code = r.status; e.ms = r.ms;
+          e.detail = unwrap(r); throw e;
+        }
+        return { code: r.status, ms: r.ms, detail: 'duplicate rejected' };
+      });
+      await runStep('POST /buses (invalid body → 400/422)', async () => {
+        const r = await call('POST', '/buses', {
+          token: ctx.admin.token,
+          body: { name: '', plateNumber: '', capacity: -1 },
+        });
+        if (r.status !== 400 && r.status !== 422) {
+          const e = new Error('expected 400/422'); e.code = r.status; e.ms = r.ms;
+          e.detail = unwrap(r); throw e;
+        }
+        return { code: r.status, ms: r.ms, detail: 'validation enforced' };
+      });
+    }
+
+    addGroup('CRUD — Routes & stops');
+    let createdRouteId = null;
+    let createdStopId = null;
+    await runStep('POST /routes (create)', async () => {
+      const r = await call('POST', '/routes', {
+        token: ctx.admin.token,
+        body: { name: `TestRoute-${rand}`, description: 'created by /tests' },
+      });
+      expect(r, 'create route');
+      createdRouteId = unwrap(r)?.id;
+      return { code: r.status, ms: r.ms, detail: { id: createdRouteId } };
+    });
+    if (createdRouteId) {
+      await runStep('GET /routes/:id', async () => {
+        const r = await call('GET', `/routes/${createdRouteId}`, { token: ctx.admin.token });
+        expect(r, 'get route');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+      await runStep('PATCH /routes/:id', async () => {
+        const r = await call('PATCH', `/routes/${createdRouteId}`, {
+          token: ctx.admin.token,
+          body: { description: 'edited by /tests' },
+        });
+        expect(r, 'patch route');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+      await runStep('POST /routes/:id/stops (create stop)', async () => {
+        const r = await call('POST', `/routes/${createdRouteId}/stops`, {
+          token: ctx.admin.token,
+          body: { name: `Stop-${rand}`, latitude: 36.8, longitude: 10.18, stopOrder: 1, plannedTime: '08:00' },
+        });
+        expect(r, 'create stop');
+        createdStopId = unwrap(r)?.id;
+        return { code: r.status, ms: r.ms, detail: { id: createdStopId } };
+      });
+      await runStep('GET /routes/:id/stops', async () => {
+        const r = await call('GET', `/routes/${createdRouteId}/stops`, { token: ctx.admin.token });
+        expect(r, 'list stops');
+        const data = unwrap(r);
+        return { code: r.status, ms: r.ms, detail: { count: Array.isArray(data) ? data.length : 0 } };
+      });
+    }
+
+    addGroup('CRUD — Children');
+    let createdChildId = null;
+    await runStep('POST /children (create)', async () => {
+      const r = await call('POST', '/children', {
+        token: ctx.admin.token,
+        body: { firstName: `Kid${rand}`, lastName: 'Tester', dateOfBirth: '2015-01-01' },
+      });
+      expect(r, 'create child');
+      createdChildId = unwrap(r)?.id;
+      return { code: r.status, ms: r.ms, detail: { id: createdChildId } };
+    });
+    if (createdChildId) {
+      await runStep('GET /children/:id', async () => {
+        const r = await call('GET', `/children/${createdChildId}`, { token: ctx.admin.token });
+        expect(r, 'get child');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+      await runStep('PATCH /children/:id', async () => {
+        const r = await call('PATCH', `/children/${createdChildId}`, {
+          token: ctx.admin.token,
+          body: { firstName: `Kid${rand}-edit` },
+        });
+        expect(r, 'patch child');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+    }
+
+    addGroup('CRUD — Child ↔ Route assignment');
+    if (createdChildId && createdRouteId) {
+      await runStep('POST /child-routes (assign)', async () => {
+        const r = await call('POST', '/child-routes', {
+          token: ctx.admin.token,
+          body: { childId: createdChildId, routeId: createdRouteId },
+        });
+        // Some impls expect childId in path — try both shapes
+        if (r.status === 404 || r.status === 400) {
+          const r2 = await call('POST', `/child-routes/${createdChildId}`, {
+            token: ctx.admin.token,
+            body: { routeId: createdRouteId },
+          });
+          if (!r2.ok) {
+            const e = new Error('child-route assign failed'); e.code = r2.status; e.ms = r2.ms;
+            e.detail = unwrap(r2); throw e;
+          }
+          return { code: r2.status, ms: r2.ms, detail: unwrap(r2) };
+        }
+        expect(r, 'child-route assign');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+    } else {
+      addSkipRow('POST /child-routes', 'no child or route id available');
+    }
+
+    addGroup('CRUD — Geofences');
+    let createdGeofenceId = null;
+    await runStep('POST /geofences (create)', async () => {
+      const r = await call('POST', '/geofences', {
+        token: ctx.admin.token,
+        body: {
+          name: `Geo-${rand}`, type: 'circle',
+          centerLat: 36.8065, centerLng: 10.1815, radius: 200,
+        },
+      });
+      // Schema may differ — accept any 2xx
+      if (!r.ok) {
+        const e = new Error('create geofence'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      createdGeofenceId = unwrap(r)?.id;
+      return { code: r.status, ms: r.ms, detail: { id: createdGeofenceId } };
+    });
+    if (createdGeofenceId) {
+      await runStep('GET /geofences/:id', async () => {
+        const r = await call('GET', `/geofences/${createdGeofenceId}`, { token: ctx.admin.token });
+        expect(r, 'get geofence');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+      await runStep('PATCH /geofences/:id', async () => {
+        const r = await call('PATCH', `/geofences/${createdGeofenceId}`, {
+          token: ctx.admin.token,
+          body: { name: `Geo-${rand}-edit` },
+        });
+        expect(r, 'patch geofence');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+    }
+
+    addGroup('Devices, Notifications, ETA, Check-ins');
+    await runStep('POST /devices (register parent device)', async () => {
+      if (!ctx.parent) { const e = new Error('no parent'); e.__skip = true; throw e; }
+      const r = await call('POST', '/devices', {
+        token: ctx.parent.token,
+        body: { token: `test-fcm-token-${rand}-xxxxxxxxxxxxxxxxxxxx`, platform: 'android' },
+      });
+      expect(r, 'register device');
+      return { code: r.status, ms: r.ms, detail: unwrap(r) };
+    });
+    await runStep('PATCH /notifications/read-all (parent)', async () => {
+      if (!ctx.parent) { const e = new Error('no parent'); e.__skip = true; throw e; }
+      const r = await call('PATCH', '/notifications/read-all', { token: ctx.parent.token });
+      expect(r, 'read-all');
+      return { code: r.status, ms: r.ms, detail: unwrap(r) };
+    });
+    if (createdChildId) {
+      await runStep('GET /eta?childId=… (parent)', async () => {
+        const tk = ctx.parent?.token || ctx.admin.token;
+        const r = await call('GET', '/eta', { token: tk, query: { childId: createdChildId } });
+        // ETA may legitimately 404 if no active trip — surface result
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+    }
+    if (activeTrip) {
+      await runStep('GET /checkins/trip/:tripId', async () => {
+        const r = await call('GET', `/checkins/trip/${activeTrip.id}`, { token: ctx.admin.token });
+        expect(r, 'list checkins');
+        const data = unwrap(r);
+        return { code: r.status, ms: r.ms, detail: { count: Array.isArray(data) ? data.length : 0 } };
+      });
+      if (createdChildId) {
+        await runStep('POST /checkins (boarded)', async () => {
+          const r = await call('POST', '/checkins', {
+            token: ctx.admin.token,
+            body: { tripId: activeTrip.id, childId: createdChildId, status: 'boarded', method: 'manual' },
+          });
+          // Accept any 2xx; child may not be assigned to route → 400 also informative
+          if (!r.ok && r.status !== 400 && r.status !== 409) {
+            const e = new Error('checkin'); e.code = r.status; e.ms = r.ms;
+            e.detail = unwrap(r); throw e;
+          }
+          return { code: r.status, ms: r.ms, detail: unwrap(r) };
+        });
+      }
+    } else {
+      addSkipRow('Check-ins', 'no active trip');
+    }
+
+    addGroup('CRUD — Alerts');
+    let createdAlertId = null;
+    await runStep('POST /alerts (create)', async () => {
+      const r = await call('POST', '/alerts', {
+        token: ctx.admin.token,
+        body: { type: 'info', severity: 'low', message: `test alert ${rand}` },
+      });
+      if (!r.ok) {
+        const e = new Error('create alert'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      createdAlertId = unwrap(r)?.id;
+      return { code: r.status, ms: r.ms, detail: { id: createdAlertId } };
+    });
+    if (createdAlertId) {
+      await runStep('GET /alerts/:id', async () => {
+        const r = await call('GET', `/alerts/${createdAlertId}`, { token: ctx.admin.token });
+        expect(r, 'get alert');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+      await runStep('PATCH /alerts/:id (acknowledge/resolve)', async () => {
+        const r = await call('PATCH', `/alerts/${createdAlertId}`, {
+          token: ctx.admin.token,
+          body: { status: 'acknowledged' },
+        });
+        // Accept 200 or 400 (workflow may differ)
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+    }
+
+    addGroup('Analytics — sessions & reports');
+    let sessionId = null;
+    await runStep('POST /analytics/session/start', async () => {
+      const r = await call('POST', '/analytics/session/start', {
+        token: ctx.admin.token,
+        body: { deviceType: 'test', platform: 'web' },
+      });
+      expect(r, 'start session');
+      sessionId = unwrap(r)?.id || unwrap(r)?.sessionId;
+      return { code: r.status, ms: r.ms, detail: { sessionId } };
+    });
+    if (sessionId) {
+      await runStep('POST /analytics/session/:id/end', async () => {
+        const r = await call('POST', `/analytics/session/${sessionId}/end`, { token: ctx.admin.token });
+        expect(r, 'end session');
+        return { code: r.status, ms: r.ms, detail: unwrap(r) };
+      });
+    }
+    await runStep('GET /analytics/reports/attendance', async () => {
+      const r = await call('GET', '/analytics/reports/attendance', {
+        token: ctx.admin.token, query: { days: 7 },
+      });
+      // 200 or 403 (if admin role lacks manager perms)
+      if (!r.ok && r.status !== 403) {
+        const e = new Error('attendance'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: unwrap(r) };
+    });
+    await runStep('GET /analytics/reports/driver-performance', async () => {
+      const r = await call('GET', '/analytics/reports/driver-performance', {
+        token: ctx.admin.token, query: { days: 7 },
+      });
+      if (!r.ok && r.status !== 403) {
+        const e = new Error('driver perf'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: unwrap(r) };
+    });
+
+    addGroup('Organization & users');
+    await runStep('GET /organizations/me', async () => {
+      const r = await call('GET', '/organizations/me', { token: ctx.admin.token });
+      // Some impls use /organizations/current or /organizations
+      if (r.status === 404) {
+        const r2 = await call('GET', '/organizations', { token: ctx.admin.token });
+        if (!r2.ok) {
+          const e = new Error('org me'); e.code = r2.status; e.ms = r2.ms;
+          e.detail = unwrap(r2); throw e;
+        }
+        return { code: r2.status, ms: r2.ms, detail: unwrap(r2) };
+      }
+      expect(r, 'org me');
+      return { code: r.status, ms: r.ms, detail: unwrap(r) };
+    });
+    await runStep('GET /users (admin lists users)', async () => {
+      const r = await call('GET', '/users', { token: ctx.admin.token });
+      // 200 or 403 depending on role
+      if (!r.ok && r.status !== 403) {
+        const e = new Error('list users'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      const data = unwrap(r);
+      return { code: r.status, ms: r.ms,
+        detail: Array.isArray(data) ? { count: data.length } : data };
+    });
+
+    // ─── Negative / permission tests ───
+    addGroup('Negative & permission tests');
+    await runStep('POST /auth/login (wrong password) → 401', async () => {
+      const r = await call('POST', '/auth/login', {
+        body: { email: $('adminEmail').value, password: 'wrong-password-xyz' },
+      });
+      if (r.status !== 401) {
+        const e = new Error('expected 401'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'wrong password rejected' };
+    });
+    await runStep('POST /auth/login (unknown email) → 401', async () => {
+      const r = await call('POST', '/auth/login', {
+        body: { email: `nobody-${rand}@nowhere.test`, password: 'whatever1' },
+      });
+      if (r.status !== 401) {
+        const e = new Error('expected 401'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'unknown email rejected' };
+    });
+    await runStep('POST /auth/login (malformed body) → 400/422', async () => {
+      const r = await call('POST', '/auth/login', { body: { email: 'not-an-email' } });
+      if (r.status !== 400 && r.status !== 422) {
+        const e = new Error('expected 400/422'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'validation enforced' };
+    });
+    await runStep('GET /buses/<bad-uuid> → 400/404', async () => {
+      const r = await call('GET', '/buses/not-a-uuid', { token: ctx.admin.token });
+      if (r.status !== 400 && r.status !== 404 && r.status !== 422) {
+        const e = new Error('expected 400/404/422'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'invalid uuid handled' };
+    });
+    await runStep('GET /buses/<missing-uuid> → 404', async () => {
+      const r = await call('GET', '/buses/00000000-0000-0000-0000-000000000000', { token: ctx.admin.token });
+      if (r.status !== 404) {
+        const e = new Error('expected 404'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'not found returns 404' };
+    });
+    await runStep('Parent → POST /buses → 403 (forbidden)', async () => {
+      if (!ctx.parent) { const e = new Error('no parent'); e.__skip = true; throw e; }
+      const r = await call('POST', '/buses', {
+        token: ctx.parent.token,
+        body: { name: 'p', plateNumber: 'p', capacity: 10 },
+      });
+      if (r.status !== 403 && r.status !== 401) {
+        const e = new Error('expected 403/401'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'role enforced' };
+    });
+    await runStep('Driver → DELETE /buses/<id> → 403', async () => {
+      if (!ctx.driver || !createdBusId) { const e = new Error('no driver/bus'); e.__skip = true; throw e; }
+      const r = await call('DELETE', `/buses/${createdBusId}`, { token: ctx.driver.token });
+      if (r.status !== 403 && r.status !== 401) {
+        const e = new Error('expected 403'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'driver cannot delete bus' };
+    });
+    await runStep('GET /auth/me with expired/garbage token → 401', async () => {
+      const r = await call('GET', '/auth/me', { token: 'eyJhbGciOiJIUzI1NiJ9.garbage.sig' });
+      if (r.status !== 401) {
+        const e = new Error('expected 401'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'invalid jwt rejected' };
+    });
+    await runStep('POST /tracking/location (missing busId) → 400', async () => {
+      const r = await call('POST', '/tracking/location', {
+        token: ctx.admin.token,
+        body: { latitude: 36.8, longitude: 10.18 },
+      });
+      if (r.status !== 400 && r.status !== 422) {
+        const e = new Error('expected 400/422'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'gps validation enforced' };
+    });
+    await runStep('GET /gps/history (no bus/trip) → 400', async () => {
+      const r = await call('GET', '/gps/history', { token: ctx.admin.token });
+      if (r.status !== 400 && r.status !== 422) {
+        const e = new Error('expected 400/422'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'requires busId or tripId' };
+    });
+
+    // ─── Refresh token round-trip ───
+    addGroup('Auth — refresh & logout');
+    await runStep('POST /auth/login + /auth/refresh round-trip', async () => {
+      const r = await call('POST', '/auth/login', {
+        body: { email: $('adminEmail').value, password: $('password').value },
+      });
+      expect(r, 'login');
+      const data = unwrap(r) || {};
+      if (!data.refreshToken) {
+        const e = new Error('no refresh token in login response');
+        e.code = r.status; e.ms = r.ms; e.detail = data; throw e;
+      }
+      const r2 = await call('POST', '/auth/refresh', { body: { refreshToken: data.refreshToken } });
+      expect(r2, 'refresh');
+      const d2 = unwrap(r2) || {};
+      ctx.refreshAccess = d2.accessToken;
+      ctx.refreshTokenNew = d2.refreshToken;
+      return { code: r2.status, ms: r2.ms, detail: { rotated: !!d2.refreshToken && d2.refreshToken !== data.refreshToken } };
+    });
+    await runStep('POST /auth/refresh (invalid token) → 401', async () => {
+      const r = await call('POST', '/auth/refresh', { body: { refreshToken: 'x'.repeat(40) } });
+      if (r.status !== 401 && r.status !== 400) {
+        const e = new Error('expected 401/400'); e.code = r.status; e.ms = r.ms;
+        e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'bad refresh rejected' };
+    });
+
+    // ─── Cleanup created resources (best-effort) ───
+    addGroup('Cleanup');
+    const cleanups = [
+      ['DELETE /alerts/:id',     `/alerts/${createdAlertId}`,           !!createdAlertId],
+      ['DELETE /geofences/:id',  `/geofences/${createdGeofenceId}`,     !!createdGeofenceId],
+      ['DELETE /children/:id',   `/children/${createdChildId}`,         !!createdChildId],
+      ['DELETE /routes/:id',     `/routes/${createdRouteId}`,           !!createdRouteId],
+      ['DELETE /buses/:id',      `/buses/${createdBusId}`,              !!createdBusId],
+    ];
+    for (const [name, path, ready] of cleanups) {
+      if (!ready) { addSkipRow(name, 'nothing to clean up'); continue; }
+      await runStep(name, async () => {
+        const r = await call('DELETE', path, { token: ctx.admin.token });
+        // 200/204 ok, 404 also fine (already gone), 409 if FK constraints
+        return { code: r.status, ms: r.ms, detail: unwrap(r) || 'deleted' };
+      });
+    }
+
+    // ─── Spec ↔ implementation drift detector ───
+    // Reads /api/docs.json and probes every (method, path) declared in the
+    // OpenAPI spec. A 404 (or `notFound` envelope) means the route is in the
+    // docs but not actually mounted — we surface the exact file the handler
+    // belongs in based on the path's first segment.
+    addGroup('OpenAPI ↔ implementation drift');
+
+    // First-segment → expected route file, derived from src/routes/index.js.
+    const ROUTE_FILE_MAP = {
+      auth: 'src/routes/auth.routes.js',
+      users: 'src/routes/user.routes.js',
+      organizations: 'src/routes/organization.routes.js',
+      buses: 'src/routes/bus.routes.js',
+      children: 'src/routes/children.routes.js',
+      'child-routes': 'src/routes/childRoute.routes.js',
+      drivers: 'src/routes/driver.routes.js',
+      routes: 'src/routes/route.routes.js',
+      trips: 'src/routes/trip.routes.js',
+      tracking: 'src/routes/gps.routes.js',
+      gps: 'src/routes/gps.routes.js',
+      devices: 'src/routes/device.routes.js',
+      eta: 'src/routes/eta.routes.js',
+      checkins: 'src/routes/checkin.routes.js',
+      sos: 'src/routes/sos.routes.js',
+      notifications: 'src/routes/notification.routes.js',
+      analytics: 'src/routes/analytics.routes.js',
+      alerts: 'src/routes/alert.routes.js',
+      geofences: 'src/routes/geofence.routes.js',
+      health: 'src/routes/health.routes.js',
+      logs: 'src/routes/logs.routes.js',
+    };
+
+    // Probe one (method, specPath) and decide whether the route is mounted.
+    // Strategy: substitute `{param}` placeholders with a syntactically valid
+    // value so we hit the *router*, not Express's path-not-found. We then
+    // distinguish a *router* 404 ("Route not found" from notFound middleware
+    // — which is what we care about) from a *handler* 404 like "Trip not
+    // found" (route exists, just no row). Any non-404 status (400/401/403/
+    // 409/422/500) also means the route exists.
+    const probeRoute = async (method, specPath) => {
+      const placeholder = '00000000-0000-0000-0000-000000000000';
+      const concretePath = specPath.replace(/\{[^}]+\}/g, placeholder);
+      const isWrite = method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
+      const r = await call(method, concretePath, {
+        token: ctx.admin?.token,
+        body: isWrite ? {} : undefined,
+      });
+      // The unmounted-route 404 uses the exact string "Route not found"
+      // from src/middleware/errorHandler.js. Handler-emitted 404s have
+      // different messages ("Trip not found", "Alert not found", etc.).
+      const body = r.json || {};
+      const envelope = body.data && typeof body === 'object' ? body.data : body;
+      const errMsg = (envelope.error || envelope.message || body.error || body.message || '').toString();
+      const missing = r.status === 404 && /^Route not found$/i.test(errMsg);
+      return { ...r, missing };
+    };
+
+
+    await runStep('GET /api/docs.json (spec)', async () => {
+      const t0 = performance.now();
+      const res = await fetch('/api/docs.json');
+      const ms = Math.round(performance.now() - t0);
+      if (!res.ok) {
+        const e = new Error('docs not reachable'); e.code = res.status; e.ms = ms; throw e;
+      }
+      const spec = await res.json();
+      ctx.spec = spec;
+      const totalOps = Object.values(spec.paths || {}).reduce(
+        (n, item) => n + Object.keys(item).filter((k) =>
+          ['get','post','patch','put','delete','options','head'].includes(k)).length, 0);
+      return { code: 200, ms, detail: { paths: Object.keys(spec.paths || {}).length, operations: totalOps } };
+    });
+
+    if (ctx.spec) {
+      const ops = [];
+      for (const [p, item] of Object.entries(ctx.spec.paths || {})) {
+        for (const m of ['get','post','patch','put','delete']) {
+          if (item[m]) ops.push({ method: m.toUpperCase(), path: p });
+        }
+      }
+
+      const missing = [];
+      const probed = [];
+      for (const op of ops) {
+        const r = await probeRoute(op.method, op.path);
+        probed.push({ ...op, status: r.status });
+        if (r.missing) missing.push({ ...op, status: r.status, body: r.json || r.text });
+      }
+
+      // Per-route summary row (collapsed detail with the full probe table).
+      const probeRow = addRow(`Probed ${ops.length} operations from spec`);
+      setRow(probeRow, missing.length === 0 ? 'ok' : 'err', {
+        code: missing.length === 0 ? 200 : 404,
+        detail: {
+          totalProbed: ops.length,
+          missingCount: missing.length,
+          byStatus: probed.reduce((acc, p) => {
+            acc[p.status] = (acc[p.status] || 0) + 1; return acc;
+          }, {}),
+        },
+      });
+
+      if (missing.length === 0) {
+        const okRow = addRow('No missing routes');
+        setRow(okRow, 'ok', { detail: 'Every operation in the OpenAPI spec is mounted on the server.' });
+      } else {
+        // One row per missing route, with an exact "where to implement" hint.
+        for (const m of missing) {
+          const seg = m.path.replace(/^\/+/, '').split('/')[0];
+          const file = ROUTE_FILE_MAP[seg] || `src/routes/${seg}.routes.js (create new)`;
+          const subPath = '/' + m.path.replace(/^\/+/, '').split('/').slice(1).join('/');
+          const handlerHint =
+`router.${m.method.toLowerCase()}('${subPath || '/'}',
+  requireAuth,
+  /* validate(schema), requireRole(...), */
+  asyncHandler(async (req, res) => {
+    // TODO: implement ${m.method} ${m.path}
+    res.json({});
+  }),
+);`;
+          const row = addRow(`Missing: ${m.method} ${m.path}`);
+          setRow(row, 'err', {
+            code: m.status,
+            detail: {
+              specPath: m.path,
+              method: m.method,
+              suggestedFile: file,
+              mountedUnder: `app.use('/${seg}', ...) in src/routes/index.js`,
+              snippet: handlerHint,
+              serverResponse: m.body,
+              fix: `Add the handler above to ${file}. If the file doesn't exist, create it and register it in src/routes/index.js with router.use('/${seg}', <newRouter>). Otherwise, remove the operation from the OpenAPI annotation that documents it.`,
+            },
+          });
+        }
+      }
+    }
+
+
+    addGroup('Security sanity');
+    await runStep('GET /buses without token → 401', async () => {
+      const r = await call('GET', '/buses');
+      if (r.status !== 401 && r.status !== 403) {
+        const e = new Error('expected 401/403'); e.code = r.status; e.ms = r.ms; e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'auth correctly enforced' };
+    });
+
+    await runStep('GET /buses with bogus token → 401', async () => {
+      const r = await call('GET', '/buses', { token: 'definitely.not.a.jwt' });
+      if (r.status !== 401) {
+        const e = new Error('expected 401'); e.code = r.status; e.ms = r.ms; e.detail = unwrap(r); throw e;
+      }
+      return { code: r.status, ms: r.ms, detail: 'rejected invalid token' };
+    });
+
+    summary();
+    renderDashboard();
+    const totalMs = Date.now() - state.startedAt;
+    $('pLast').textContent = `last run: ${new Date().toLocaleTimeString()} (${totalMs} ms)`;
+  };
+
+  // ────────────────── Per-endpoint dashboard ──────────────────
+  // Buckets every test row by its inferred METHOD + /resource and shows
+  // pass/fail/skip counts plus average response time.
+  const renderDashboard = () => {
+    const dash = $('dashboard');
+    const grid = $('dashGrid');
+    const buckets = new Map();
+    for (const row of state.rows) {
+      // Parse "METHOD /path …" out of row.name. Fallbacks for non-HTTP rows.
+      const m = row.name.match(/\b(GET|POST|PATCH|PUT|DELETE)\b\s+(\/[A-Za-z0-9_\-/{}:.]+)/);
+      const key = m ? `${m[1]} /${m[2].replace(/^\/+/, '').split('/')[0]}` : '— other';
+      if (!buckets.has(key)) buckets.set(key, { ok: 0, err: 0, skip: 0, ms: 0, n: 0 });
+      const b = buckets.get(key);
+      if (row.status === 'ok') b.ok++;
+      else if (row.status === 'err') b.err++;
+      else if (row.status === 'skip') b.skip++;
+      const cell = row.tr.children[4]?.textContent || '';
+      const ms = parseInt(cell, 10);
+      if (!isNaN(ms)) { b.ms += ms; b.n++; }
+    }
+    const sorted = [...buckets.entries()].sort((a, b) => (b[1].err - a[1].err) || a[0].localeCompare(b[0]));
+    grid.innerHTML = '';
+    for (const [key, b] of sorted) {
+      const total = b.ok + b.err + b.skip;
+      const avg = b.n ? Math.round(b.ms / b.n) : 0;
+      const accent = b.err > 0 ? 'var(--err)' : b.skip > 0 ? 'var(--warn)' : 'var(--ok)';
+      const card = document.createElement('div');
+      card.style.cssText = `border:1px solid var(--border);border-left:3px solid ${accent};border-radius:8px;padding:10px 12px;background:#0b1428;`;
+      card.innerHTML = `
+        <div style="font-family:ui-monospace,monospace;font-size:12px;color:#cdd9ee;margin-bottom:6px;">${key}</div>
+        <div style="display:flex;gap:10px;font-size:11px;flex-wrap:wrap;">
+          <span style="color:var(--ok);">✓ ${b.ok}</span>
+          <span style="color:var(--err);">✗ ${b.err}</span>
+          <span style="color:var(--warn);">⏭ ${b.skip}</span>
+          <span style="color:var(--muted);margin-left:auto;">${total} test${total === 1 ? '' : 's'} · avg ${avg}ms</span>
+        </div>`;
+      grid.appendChild(card);
+    }
+    $('dashMeta').textContent = `${sorted.length} endpoint groups · total ${Date.now() - state.startedAt} ms`;
+    dash.style.display = sorted.length ? 'block' : 'none';
+  };
+
+  // ────────────────── Seed button ──────────────────
+  $('seedBtn').addEventListener('click', async () => {
+    const btn = $('seedBtn');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Seeding…';
+    try {
+      const t0 = performance.now();
+      const res = await fetch(apiBase() + '/dev/seed', { method: 'POST' });
+      const ms = Math.round(performance.now() - t0);
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        btn.textContent = '✗ Seed failed';
+        alert(`Seed failed (${res.status})\n` + JSON.stringify(json, null, 2));
+      } else {
+        const data = json?.data || json;
+        const orgs = data?.counts?.organizations ?? '?';
+        const users = data?.counts?.users ?? '?';
+        const trips = data?.counts?.trips ?? '?';
+        btn.textContent = `✓ Seeded (${orgs} orgs, ${users} users, ${trips} trips) in ${ms}ms`;
+      }
+    } catch (e) {
+      btn.textContent = '✗ Network error';
+      alert('Seed request failed: ' + e.message);
+    } finally {
+      setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 4000);
+    }
+  });
+
+  $('runBtn').addEventListener('click', async () => {
+    $('runBtn').disabled = true;
+    try { await run(); } finally { $('runBtn').disabled = false; }
+  });
+  $('clearBtn').addEventListener('click', () => {
+    state.rows = []; tbody.innerHTML = ''; summary();
+    $('dashboard').style.display = 'none';
+    $('pLast').textContent = 'last run: —';
+  });
+})();
+</script>
+</body>
+</html>

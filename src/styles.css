@@ -1,0 +1,351 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * EcoBus admin design system.
+ * Brand teal (mirrors mobile apps #229BA6/#3DBFC9) on a calm slate palette.
+ * Sidebar uses a deep ink-navy for clear separation from content.
+ */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-accent: var(--primary-accent);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-danger-soft: var(--danger-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.7rem;
+
+  /* Brand: EcoBus teal — mirrors the mobile apps (#229BA6 / #3DBFC9) */
+  --primary: oklch(0.60 0.095 200);          /* ~ #229BA6 */
+  --primary-foreground: oklch(0.99 0 0);
+  --primary-soft: oklch(0.96 0.025 200);     /* very light teal wash */
+  --primary-accent: oklch(0.74 0.095 195);   /* ~ #3DBFC9 */
+
+  /* Surfaces — clean off-white */
+  --background: oklch(0.99 0.003 240);
+  --foreground: oklch(0.18 0.03 255);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.20 0.025 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.025 250);
+
+  /* Secondary = deep ink-navy (matches app splash #0E1726) */
+  --secondary: oklch(0.21 0.028 258);
+  --secondary-foreground: oklch(0.985 0.005 230);
+
+  --muted: oklch(0.965 0.006 240);
+  --muted-foreground: oklch(0.50 0.018 250);
+  --accent: oklch(0.96 0.025 200);
+  --accent-foreground: oklch(0.30 0.08 200);
+
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --danger-soft: oklch(0.965 0.04 27);
+
+  /* Success — kept on the teal scale so the landing has zero green */
+  --success: oklch(0.60 0.095 200);
+  --success-soft: oklch(0.96 0.025 200);
+  --warning: oklch(0.72 0.15 70);
+  --warning-soft: oklch(0.97 0.05 80);
+  --info: oklch(0.65 0.13 235);
+  --info-soft: oklch(0.96 0.04 235);
+
+  --border: oklch(0.92 0.008 240);
+  --input: oklch(0.94 0.008 240);
+  --ring: oklch(0.60 0.095 200 / 50%);
+
+  --chart-1: oklch(0.60 0.095 200);
+  --chart-2: oklch(0.74 0.095 195);
+  --chart-3: oklch(0.21 0.028 258);
+  --chart-4: oklch(0.72 0.15 70);
+  --chart-5: oklch(0.58 0.22 27);
+
+  /* Sidebar — deep navy */
+  --sidebar: oklch(0.19 0.028 258);
+  --sidebar-foreground: oklch(0.92 0.012 220);
+  --sidebar-primary: oklch(0.60 0.095 200);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.26 0.035 258);
+  --sidebar-accent-foreground: oklch(0.99 0 0);
+  --sidebar-border: oklch(1 0 0 / 6%);
+  --sidebar-ring: oklch(0.60 0.095 200);
+
+  /* Elevation — soft, layered */
+  --shadow-xs: 0 1px 2px 0 oklch(0.20 0.03 250 / 0.04);
+  --shadow-sm: 0 1px 2px 0 oklch(0.20 0.03 250 / 0.05), 0 1px 3px 0 oklch(0.20 0.03 250 / 0.05);
+  --shadow-md: 0 4px 8px -2px oklch(0.20 0.03 250 / 0.06), 0 2px 4px -2px oklch(0.20 0.03 250 / 0.04);
+  --shadow-lg: 0 10px 24px -6px oklch(0.20 0.03 250 / 0.10), 0 4px 8px -4px oklch(0.20 0.03 250 / 0.06);
+  --shadow-elevated: 0 24px 60px -20px oklch(0.20 0.03 250 / 0.18), 0 8px 24px -10px oklch(0.20 0.03 250 / 0.10);
+
+  /* Gradients — teal to lighter teal/cyan, matching the apps */
+  --gradient-brand: linear-gradient(135deg, oklch(0.55 0.10 205), oklch(0.74 0.095 195));
+  --gradient-ink: linear-gradient(160deg, oklch(0.19 0.028 258) 0%, oklch(0.13 0.03 258) 100%);
+  --gradient-surface: linear-gradient(180deg, oklch(0.99 0.003 220) 0%, oklch(0.97 0.006 230) 100%);
+}
+
+.dark {
+  --background: oklch(0.16 0.025 250);
+  --foreground: oklch(0.98 0.005 220);
+  --card: oklch(0.22 0.03 258);
+  --card-foreground: oklch(0.98 0.005 220);
+  --popover: oklch(0.22 0.03 258);
+  --popover-foreground: oklch(0.98 0.005 220);
+  --primary: oklch(0.74 0.10 200);
+  --primary-foreground: oklch(0.16 0.03 250);
+  --primary-soft: oklch(0.28 0.05 200);
+  --secondary: oklch(0.28 0.04 258);
+  --secondary-foreground: oklch(0.98 0.005 220);
+  --muted: oklch(0.26 0.03 258);
+  --muted-foreground: oklch(0.72 0.02 250);
+  --accent: oklch(0.28 0.05 200);
+  --accent-foreground: oklch(0.98 0.005 220);
+  --destructive: oklch(0.65 0.22 27);
+  --danger-soft: oklch(0.30 0.10 27);
+  --success-soft: oklch(0.30 0.07 155);
+  --warning-soft: oklch(0.32 0.07 70);
+  --info-soft: oklch(0.30 0.07 235);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.74 0.10 200 / 60%);
+  --sidebar: oklch(0.13 0.022 258);
+  --sidebar-foreground: oklch(0.92 0.012 220);
+  --sidebar-primary: oklch(0.74 0.10 200);
+  --sidebar-primary-foreground: oklch(0.16 0.03 250);
+  --sidebar-accent: oklch(0.22 0.03 258);
+  --sidebar-accent-foreground: oklch(0.98 0.005 220);
+  --sidebar-border: oklch(1 0 0 / 8%);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    font-feature-settings: "cv11", "ss01", "ss02", "cv02", "cv03", "cv04";
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    pointer-events: auto !important;
+    /* Match the mobile apps: native system stack (SF on iOS/macOS, Segoe on Windows, Roboto on Android). */
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans Arabic", sans-serif;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 15px;
+    line-height: 1.55;
+    letter-spacing: -0.003em;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans Arabic", sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.022em;
+  }
+  h1 { letter-spacing: -0.03em; line-height: 1.05; }
+
+  /* Arabic: switch to a font with proper Arabic glyphs and a slightly taller line for legibility. */
+  html[dir="rtl"] body,
+  html[dir="rtl"] h1,
+  html[dir="rtl"] h2,
+  html[dir="rtl"] h3,
+  html[dir="rtl"] h4 {
+    font-family: "SF Arabic", "Geeza Pro", "Noto Sans Arabic", "Tajawal", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing: 0;
+  }
+  html[dir="rtl"] body { line-height: 1.7; }
+
+  /* Number / KPI display feel */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Subtle scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.85 0.01 240);
+    border-radius: 999px;
+    border: 2px solid var(--color-background);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(0.75 0.015 240); }
+  .dark ::-webkit-scrollbar-thumb { background: oklch(1 0 0 / 0.12); border-color: var(--color-background); }
+}
+
+/* Utility classes for sophisticated visuals */
+@layer utilities {
+  .bg-gradient-brand { background-image: var(--gradient-brand); }
+  .bg-gradient-ink { background-image: var(--gradient-ink); }
+  .bg-gradient-surface { background-image: var(--gradient-surface); }
+
+  .shadow-elevated { box-shadow: var(--shadow-elevated); }
+
+  /* Soft inner card glow used on hero / login */
+  .ring-soft {
+    box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.06);
+  }
+
+  /* Animated live dot */
+  .live-dot {
+    position: relative;
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--success);
+  }
+  .live-dot::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    background: var(--success);
+    opacity: 0.35;
+    animation: live-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  @keyframes live-ping {
+    0%   { transform: scale(0.6); opacity: 0.5; }
+    80%, 100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  /* Decorative dotted pattern (used on login hero) */
+  .pattern-dots {
+    background-image: radial-gradient(oklch(1 0 0 / 0.10) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+
+  /* Subtle film grain — kills the AI-generated flat look */
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* Drifting hero orbs */
+  @keyframes orb-drift {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50%      { transform: translate3d(40px, -30px, 0) scale(1.08); }
+  }
+  .orb-drift { animation: orb-drift 14s ease-in-out infinite; }
+  .orb-drift-slow { animation: orb-drift 22s ease-in-out infinite reverse; }
+
+  /* Marquee row for school logos */
+  @keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .marquee { display: flex; width: max-content; animation: marquee 38s linear infinite; }
+  [dir="rtl"] .marquee { animation-direction: reverse; }
+  .marquee-mask {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+
+  /* Animated stroke for the route line in the hero map preview */
+  @keyframes dash-flow { to { stroke-dashoffset: -200; } }
+  .dash-flow { stroke-dasharray: 6 8; animation: dash-flow 4s linear infinite; }
+
+  /* Pulsing GPS marker */
+  @keyframes gps-ping {
+    0%   { transform: scale(0.6); opacity: 0.7; }
+    100% { transform: scale(2.6); opacity: 0; }
+  }
+  .gps-ping { animation: gps-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+  /* RTL-safe arrow flip */
+  [dir="rtl"] .rtl-flip { transform: scaleX(-1); }
+
+  /* ---- Reveal on scroll ---- */
+  @keyframes reveal-up {
+    from { opacity: 0; transform: translate3d(0, 24px, 0); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+  .reveal { opacity: 0; will-change: transform, opacity; }
+  .reveal.in-view { animation: reveal-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  .reveal-delay-1.in-view { animation-delay: 0.08s; }
+  .reveal-delay-2.in-view { animation-delay: 0.16s; }
+  .reveal-delay-3.in-view { animation-delay: 0.24s; }
+  .reveal-delay-4.in-view { animation-delay: 0.32s; }
+
+  /* ---- Floating phone / object ---- */
+  @keyframes float-y {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50%      { transform: translate3d(0, -14px, 0); }
+  }
+  .float-y { animation: float-y 6s ease-in-out infinite; }
+  @keyframes float-y-soft {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50%      { transform: translate3d(0, -8px, 0); }
+  }
+  .float-y-soft { animation: float-y-soft 4.5s ease-in-out infinite; }
+
+  /* ---- Slow spin (decorative ring) ---- */
+  @keyframes spin-slow { to { transform: rotate(360deg); } }
+  .spin-slow { animation: spin-slow 28s linear infinite; }
+
+  /* ---- Tile pop on hover ---- */
+  .tile-pop { transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease, background-color .25s ease; }
+  .tile-pop:hover { transform: translate3d(0, -6px, 0); }
+
+  /* ---- Animated dashed map line ---- */
+  @keyframes dash-march { to { stroke-dashoffset: -220; } }
+  .dash-march { stroke-dasharray: 4 8; animation: dash-march 6s linear infinite; }
+
+  /* ---- Gradient text shimmer ---- */
+  @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+}
+

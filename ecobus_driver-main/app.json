@@ -1,0 +1,94 @@
+{
+  "expo": {
+    "name": "EcoBus Driver",
+    "slug": "ecobus-driver",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0E1726"
+    },
+    "newArchEnabled": false,
+    "android": {
+      "package": "app.ecobus.driver",
+      "versionCode": 1,
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35,
+      "minSdkVersion": 24,
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCG5E5SZLZYoEo3SQujz-oIlRk5WMGarQI"
+        }
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "app.ecobus.driver",
+      "buildNumber": "1",
+      "deploymentTarget": "15.1",
+      "supportsTablet": false,
+      "requiresFullScreen": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "config": {
+        "googleMapsApiKey": "AIzaSyCG5E5SZLZYoEo3SQujz-oIlRk5WMGarQI"
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "EcoBus Driver uses your location to track the bus route and send live position updates to parents.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "EcoBus Driver uses your location in the background to continue tracking the bus even when the app is minimized.",
+        "NSLocationAlwaysUsageDescription": "EcoBus Driver requires background location to keep tracking active during service.",
+        "NSCameraUsageDescription": "EcoBus Driver does not use your camera.",
+        "NSMicrophoneUsageDescription": "EcoBus Driver does not record audio.",
+        "UIBackgroundModes": ["location", "fetch", "remote-notification"],
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "privacyPolicyUrl": "https://ecobus.app/privacy",
+    "plugins": [
+      "expo-localization",
+      "expo-notifications",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "EcoBus Driver uses your location to track the bus route and send live position updates to parents.",
+          "locationWhenInUsePermission": "EcoBus Driver uses your location to track the bus route and send live position updates to parents.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24,
+            "useLegacyPackaging": false
+          },
+          "ios": {
+            "deploymentTarget": "15.1",
+            "useFrameworks": "static"
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    },
+    "owner": "REPLACE_WITH_EXPO_ACCOUNT"
+  }
+}

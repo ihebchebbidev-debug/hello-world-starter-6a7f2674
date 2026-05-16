@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS page_views;
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS visitors;

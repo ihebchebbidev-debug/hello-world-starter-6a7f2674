@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS route_assignments;
+DROP TABLE IF EXISTS route_stops;
+DROP TABLE IF EXISTS routes;
+DROP TABLE IF EXISTS buses;

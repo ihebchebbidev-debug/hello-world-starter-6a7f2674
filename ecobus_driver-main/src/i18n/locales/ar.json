@@ -1,0 +1,146 @@
+{
+  "common": {
+    "ok": "موافق",
+    "cancel": "إلغاء",
+    "back": "رجوع",
+    "save": "حفظ",
+    "loading": "جار التحميل…",
+    "tryAgain": "حاول مجددًا",
+    "or": "أو",
+    "yes": "نعم",
+    "no": "لا",
+    "confirm": "تأكيد",
+    "close": "إغلاق",
+    "logout": "تسجيل الخروج"
+  },
+  "input": {
+    "show": "إظهار",
+    "hide": "إخفاء",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور"
+  },
+  "errors": {
+    "boundaryTitle": "حدث خطأ",
+    "boundaryBody": "حدث خطأ غير متوقع. حاول إعادة تشغيل الشاشة.",
+    "boundaryHint": "إذا استمرت المشكلة، أعد تشغيل التطبيق.",
+    "loadFailed": "فشل التحميل",
+    "network": "لا يوجد اتصال. تحقق من الشبكة.",
+    "unauthorized": "انتهت الجلسة. يرجى تسجيل الدخول من جديد.",
+    "forbidden": "إجراء غير مسموح به.",
+    "notFound": "العنصر غير موجود.",
+    "conflict": "تعارض: لا يمكن تنفيذ العملية.",
+    "invalidInput": "بيانات غير صالحة.",
+    "rateLimited": "محاولات كثيرة. حاول لاحقاً.",
+    "server": "خطأ في الخادم. حاول لاحقاً.",
+    "unknown": "حدث خطأ.",
+    "boardingFailed": "تعذّر تسجيل الصعود",
+    "sosFailed": "تعذّر إرسال نداء الاستغاثة",
+    "tripStartFailed": "تعذّر بدء الخدمة",
+    "tripEndFailed": "تعذّر إنهاء الخدمة"
+  },
+  "splash": {
+    "tagline": "تطبيق السائق",
+    "subtitle": "النقل المدرسي — نسخة السائق"
+  },
+  "login": {
+    "welcome": "تسجيل دخول السائق",
+    "subtitle": "أدخل بياناتك للوصول إلى مسارك",
+    "emailLabel": "البريد الإلكتروني",
+    "passwordLabel": "كلمة المرور",
+    "loginBtn": "تسجيل الدخول",
+    "demoAccess": "الوصول التجريبي",
+    "errors": {
+      "invalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا",
+      "invalidPassword": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+      "invalidCredentials": "بريد إلكتروني أو كلمة مرور غير صحيحة"
+    }
+  },
+  "tabs": {
+    "assignment": "اليوم",
+    "map": "الخريطة",
+    "boarding": "الركوب",
+    "notifications": "التنبيهات",
+    "profile": "الملف"
+  },
+  "assignment": {
+    "title": "مسار اليوم",
+    "noAssignment": "لا يوجد مسار اليوم",
+    "noAssignmentBody": "لا توجد لديك مهمة مجدولة لهذا اليوم.",
+    "routeLabel": "الخط",
+    "busLabel": "الحافلة",
+    "hoursLabel": "الأوقات",
+    "childrenLabel": "الأطفال",
+    "statusNotStarted": "لم يبدأ",
+    "statusInProgress": "قيد التنفيذ",
+    "statusCompleted": "مكتمل",
+    "stops": "المحطات",
+    "capacity": "السعة",
+    "startService": "بدء الخدمة",
+    "endService": "إنهاء الخدمة",
+    "confirmEnd": "إنهاء الخدمة؟",
+    "confirmEndBody": "سيؤدي هذا إلى إيقاف تتبع GPS وتحديد المسار كمكتمل.",
+    "serviceStarted": "بدأت الخدمة",
+    "serviceEnded": "انتهت الخدمة"
+  },
+  "map": {
+    "title": "الخريطة والمسار",
+    "nextStop": "المحطة التالية",
+    "distance": "المسافة",
+    "eta": "الوصول المتوقع",
+    "navigate": "الملاحة",
+    "gpsActive": "GPS نشط",
+    "gpsWeak": "إشارة ضعيفة",
+    "gpsOff": "غير متصل",
+    "noService": "ابدأ الخدمة لتفعيل تتبع GPS",
+    "km": "كم",
+    "min": "دقيقة",
+    "navigationError": "التنقل",
+    "navigationErrorBody": "تعذّر فتح تطبيق الخرائط"
+  },
+  "boarding": {
+    "title": "الركوب",
+    "stop": "المحطة",
+    "children": "أطفال",
+    "notBoarded": "لم يركب",
+    "boarded": "ركب",
+    "dropped": "نزل",
+    "markBoarded": "تسجيل الركوب",
+    "markDropped": "تسجيل النزول",
+    "allBoarded": "جميع الأطفال ركبوا",
+    "noChildren": "لا أطفال في هذا المسار"
+  },
+  "notifications": {
+    "title": "التنبيهات",
+    "empty": "لا توجد تنبيهات",
+    "emptyBody": "ليس لديك إشعارات في الوقت الحالي.",
+    "markAllRead": "تحديد الكل كمقروء",
+    "timeNow": "الآن",
+    "timeMins": "{{m}} د",
+    "timeHours": "{{h}} س",
+    "timeDays": "{{d}} ي"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "driver": "السائق",
+    "bus": "الحافلة",
+    "busNumber": "رقم الحافلة",
+    "plate": "لوحة الترقيم",
+    "capacity": "السعة",
+    "seats": "مقعد",
+    "phone": "الهاتف",
+    "license": "رخصة القيادة",
+    "model": "الطراز",
+    "language": "اللغة",
+    "logoutConfirm": "تسجيل الخروج؟",
+    "logoutConfirmBody": "ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى مسارك."
+  },
+  "sos": {
+    "title": "SOS طارئ",
+    "instruction": "اضغط مع الاستمرار على الزر لمدة ثانيتين لإرسال تنبيه طارئ",
+    "holding": "استمر في الضغط…",
+    "sent": "تم إرسال التنبيه",
+    "sentBody": "تم إشعار أولياء الأمور والإدارة.",
+    "cancel": "إلغاء",
+    "send": "إرسال SOS"
+  }
+}
