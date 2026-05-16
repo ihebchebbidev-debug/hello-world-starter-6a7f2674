@@ -8,8 +8,8 @@ export function useReveal<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
   useEffect(() => {
     const el = ref.current;
+    el?.classList.add("in-view");
     if (!el || typeof IntersectionObserver === "undefined") {
-      el?.classList.add("in-view");
       return;
     }
     const io = new IntersectionObserver(

@@ -58,7 +58,8 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "/" },
-      { rel: "preload", as: "image", href: heroBg, fetchPriority: "high" },
+      { rel: "preload", as: "image", href: heroBgMobile, fetchPriority: "high", media: "(max-width: 639px)" },
+      { rel: "preload", as: "image", href: heroBg, fetchPriority: "high", media: "(min-width: 640px)" },
     ],
     scripts: [
       {
@@ -197,12 +198,6 @@ function SiteHeader() {
 /* ───────── HERO ───────── */
 function Hero() {
   const { t } = useI18n();
-  const pills: Array<{ icon: ComponentType<{ className?: string }>; t: string; d: string }> = [
-    { icon: MapPin,      t: t("heroPill1.t"), d: t("heroPill1.d") },
-    { icon: Bell,        t: t("heroPill2.t"), d: t("heroPill2.d") },
-    { icon: ShieldCheck, t: t("heroPill3.t"), d: t("heroPill3.d") },
-    { icon: Smartphone,  t: t("heroPill4.t"), d: t("heroPill4.d") },
-  ];
   return (
     <section id="home" className="relative isolate overflow-hidden bg-secondary text-secondary-foreground">
       {/* Full-bleed background image */}
@@ -244,8 +239,7 @@ function Hero() {
 
       <div className="mx-auto max-w-7xl px-5 pt-20 pb-8 text-left sm:px-8 sm:pt-24 sm:pb-10 lg:pt-28 lg:pb-12">
         <h1
-          ref={useReveal<HTMLHeadingElement>()}
-          className="reveal max-w-3xl text-[32px] leading-[1.08] font-semibold tracking-tight text-white sm:text-[46px] lg:text-[56px]"
+          className="max-w-3xl text-[32px] leading-[1.08] font-semibold tracking-tight text-white sm:text-[46px] lg:text-[56px]"
         >
           <span className="block">{t("hero.titleA") || "Track the School Bus."}</span>
           <span className="block">
@@ -257,20 +251,18 @@ function Hero() {
         </h1>
 
         <p
-          ref={useReveal<HTMLParagraphElement>()}
-          className="reveal reveal-delay-2 mt-3 max-w-2xl text-[14px] leading-[1.6] text-white/75 sm:mt-4 sm:text-[15.5px]"
+          className="mt-3 max-w-2xl text-[14px] leading-[1.6] text-white/75 sm:mt-4 sm:text-[15.5px]"
         >
           {t("hero.subtitle2")}
         </p>
 
         {/* CTA group */}
         <div
-          ref={useReveal<HTMLDivElement>()}
-          className="reveal reveal-delay-3 mt-6 flex flex-col gap-3 sm:mt-7"
+          className="mt-6 flex flex-col gap-3 sm:mt-7"
         >
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
-            <StoreBadge href="#" src={badgeAppStore} alt="Download on the App Store" size="lg" />
-            <StoreBadge href="#" src={badgeGooglePlay} alt="Get it on Google Play" size="lg" />
+              <StoreBadge href="#" src={badgeAppStore} alt="Download on the App Store" size="lg" eager />
+              <StoreBadge href="#" src={badgeGooglePlay} alt="Get it on Google Play" size="lg" eager />
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-white/55 sm:text-[12px]">
             <span className="inline-flex items-center gap-1.5">
@@ -312,11 +304,13 @@ function StoreBadge({
   src,
   alt,
   size = "md",
+  eager = false,
 }: {
   href: string;
   src: string;
   alt: string;
   size?: "md" | "lg";
+  eager?: boolean;
 }) {
   const sizeClass =
     size === "lg" ? "h-16 sm:h-20 md:h-24 lg:h-28" : "h-11 sm:h-12";
@@ -329,7 +323,8 @@ function StoreBadge({
       <img
         src={src}
         alt={alt}
-        loading="lazy"
+        loading={eager ? "eager" : "lazy"}
+        decoding="async"
         width={540}
         height={160}
         className={`${sizeClass} w-auto block object-contain select-none`}
