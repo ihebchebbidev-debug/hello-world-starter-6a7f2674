@@ -280,7 +280,7 @@ function LeafletInner(props: {
     );
   }
 
-  const { MapContainer, TileLayer, Marker, Polyline, useMap } = mods.rl;
+  const { MapContainer, TileLayer, Polyline, useMap } = mods.rl;
   const L = mods.L;
 
   function FitBounds({ pts }: { pts: BusLive[] }) {
