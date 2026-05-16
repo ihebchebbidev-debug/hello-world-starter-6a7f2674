@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type ComponentType, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import {
   ArrowRight, MapPin, ShieldCheck, Bell, Smartphone, BarChart3, Route as RouteIcon,
   Users, Star, CheckCircle2, Apple, PlayCircle, Mail, Phone, MapPin as Pin,
@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n, LanguageSwitcher } from "@/lib/i18n";
-import { useReveal } from "@/hooks/useReveal";
 import heroBus from "@/assets/landing-hero-bus.jpg";
 import heroBg from "@/assets/landing-hero-bg.jpg";
 import heroBgMobile from "@/assets/landing-hero-bg-mobile.jpg";
@@ -197,12 +196,6 @@ function SiteHeader() {
 /* ───────── HERO ───────── */
 function Hero() {
   const { t } = useI18n();
-  const pills: Array<{ icon: ComponentType<{ className?: string }>; t: string; d: string }> = [
-    { icon: MapPin,      t: t("heroPill1.t"), d: t("heroPill1.d") },
-    { icon: Bell,        t: t("heroPill2.t"), d: t("heroPill2.d") },
-    { icon: ShieldCheck, t: t("heroPill3.t"), d: t("heroPill3.d") },
-    { icon: Smartphone,  t: t("heroPill4.t"), d: t("heroPill4.d") },
-  ];
   return (
     <section id="home" className="relative isolate overflow-hidden bg-secondary text-secondary-foreground">
       {/* Full-bleed background image */}
@@ -244,8 +237,7 @@ function Hero() {
 
       <div className="mx-auto max-w-7xl px-5 pt-20 pb-8 text-left sm:px-8 sm:pt-24 sm:pb-10 lg:pt-28 lg:pb-12">
         <h1
-          ref={useReveal<HTMLHeadingElement>()}
-          className="reveal max-w-3xl text-[32px] leading-[1.08] font-semibold tracking-tight text-white sm:text-[46px] lg:text-[56px]"
+          className="max-w-3xl text-[32px] leading-[1.08] font-semibold tracking-tight text-white sm:text-[46px] lg:text-[56px]"
         >
           <span className="block">{t("hero.titleA") || "Track the School Bus."}</span>
           <span className="block">
@@ -257,16 +249,14 @@ function Hero() {
         </h1>
 
         <p
-          ref={useReveal<HTMLParagraphElement>()}
-          className="reveal reveal-delay-2 mt-3 max-w-2xl text-[14px] leading-[1.6] text-white/75 sm:mt-4 sm:text-[15.5px]"
+          className="mt-3 max-w-2xl text-[14px] leading-[1.6] text-white/75 sm:mt-4 sm:text-[15.5px]"
         >
           {t("hero.subtitle2")}
         </p>
 
         {/* CTA group */}
         <div
-          ref={useReveal<HTMLDivElement>()}
-          className="reveal reveal-delay-3 mt-6 flex flex-col gap-3 sm:mt-7"
+          className="mt-6 flex flex-col gap-3 sm:mt-7"
         >
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
             <StoreBadge href="#" src={badgeAppStore} alt="Download on the App Store" size="lg" />
