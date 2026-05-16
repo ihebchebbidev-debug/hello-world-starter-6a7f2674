@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { DataList } from "@/components/data-list";
 import { EntityFormDialog, ConfirmDialog } from "@/components/entity-form-dialog";
-import { ChildrenAPI, ParentsAPI, RoutesAPI } from "@/lib/api";
+import { ChildrenAPI, ParentsAPI, RoutesAPI, OrganizationsAPI } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_authenticated/children")({ component: ChildrenPage });
 
 function ChildrenPage() {
   const qc = useQueryClient();
+  const { isSuperAdmin } = useAuth();
   const [edit, setEdit] = useState<any | null>(null);
   const [del, setDel] = useState<any | null>(null);
   const [create, setCreate] = useState(false);
@@ -20,6 +22,11 @@ function ChildrenPage() {
 
   const parents = useQuery({ queryKey: ["parents"], queryFn: () => ParentsAPI.list() });
   const routes = useQuery({ queryKey: ["routes"], queryFn: () => RoutesAPI.list() });
+  const orgs = useQuery({
+    queryKey: ["organizations"],
+    queryFn: () => OrganizationsAPI.list(),
+    enabled: isSuperAdmin,
+  });
 
   const fields = useMemo(() => ([
     { name: "firstName", label: "Prénom", required: true },
@@ -28,7 +35,16 @@ function ChildrenPage() {
     { name: "parentId", label: "Parent", type: "select" as const, options: (parents.data || []).map((p: any) => ({
       label: `${p.firstName || ""} ${p.lastName || ""} — ${p.email || ""}`.trim(), value: p.id,
     })) },
-  ]), [parents.data]);
+    ...(isSuperAdmin
+      ? [{
+          name: "organizationId",
+          label: "École",
+          required: true,
+          type: "select" as const,
+          options: ((orgs.data || []) as any[]).map((o) => ({ label: o.name, value: o.id })),
+        }]
+      : []),
+  ]), [parents.data, isSuperAdmin, orgs.data]);
 
   const assignFields = useMemo(() => ([
     { name: "routeId", label: "Route", required: true, type: "select" as const, options: (routes.data || []).map((r: any) => ({ label: r.name, value: r.id })) },
@@ -89,10 +105,23 @@ function ChildrenPage() {
       />
       <EntityFormDialog open={create} onOpenChange={setCreate}
         title="Nouvel enfant" fields={fields}
-        onSubmit={async (v) => { await ChildrenAPI.create(v); refresh(); }} />
+        onSubmit={async (v) => {
+          const body: any = { ...v };
+          if (v.parentId) body.parent_id = v.parentId;
+          if (v.dateOfBirth) body.date_of_birth = v.dateOfBirth;
+          if (v.organizationId) body.organization_id = v.organizationId;
+          await ChildrenAPI.create(body);
+          refresh();
+        }} />
       <EntityFormDialog open={!!edit} onOpenChange={(v) => !v && setEdit(null)}
         title="Modifier l'enfant" fields={fields} initial={edit || undefined}
-        onSubmit={async (v) => { await ChildrenAPI.update(edit.id, v); refresh(); }} />
+        onSubmit={async (v) => {
+          const body: any = { ...v };
+          if (v.parentId) body.parent_id = v.parentId;
+          if (v.dateOfBirth) body.date_of_birth = v.dateOfBirth;
+          await ChildrenAPI.update(edit.id, body);
+          refresh();
+        }} />
       <EntityFormDialog open={!!assign} onOpenChange={(v) => !v && setAssign(null)}
         title="Affecter à une route" fields={assignFields}
         onSubmit={async (v) => { await ChildrenAPI.assignRoute(assign.id, v); refresh(); }} />
