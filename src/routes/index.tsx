@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, type ComponentType, type FormEvent } from "react";
 import {
   ArrowRight, MapPin, ShieldCheck, Bell, Smartphone, BarChart3, Route as RouteIcon,
   Users, Star, CheckCircle2, Apple, PlayCircle, Mail, Phone, MapPin as Pin,
@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n, LanguageSwitcher } from "@/lib/i18n";
+import { useReveal } from "@/hooks/useReveal";
 import heroBus from "@/assets/landing-hero-bus.jpg";
 import heroBg from "@/assets/landing-hero-bg.jpg";
 import heroBgMobile from "@/assets/landing-hero-bg-mobile.jpg";
