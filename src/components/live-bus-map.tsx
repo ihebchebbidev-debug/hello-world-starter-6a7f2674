@@ -1,24 +1,14 @@
 /**
- * Real-time fleet map. Shows every provided bus on a Google Map, refreshed
- * via Socket.IO. Auto-fits the viewport to all currently-known positions.
+ * Real-time fleet map (Leaflet + OpenStreetMap).
+ * No Google Maps API key, no ApiNotActivatedMapError. Pure JS map.
  *
  * Route polylines:
- *   - For every active trip with a routeId we draw a *free* dashed line
- *     through the route's stops (computed locally from our backend).
- *   - When the user selects a bus, we lazily request a road-snapped path
- *     from Google Directions API ONCE and cache it for 7 days in
- *     localStorage. See `useRoutePath` for the full cost strategy.
+ *   - Straight dashed line through stops (free, local).
+ *   - "Routes" mode: road-snapped path via OSRM public demo
+ *     (https://router.project-osrm.org — no key), cached 7 days in localStorage.
  */
-import { useEffect, useMemo, useState } from "react";
-import {
-  APIProvider,
-  Map as GMap,
-  AdvancedMarker,
-  Pin,
-  useMap,
-  useMapsLibrary,
-} from "@vis.gl/react-google-maps";
-import { GOOGLE_MAPS_API_KEY, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "@/lib/maps";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "@/lib/maps";
 import { useLiveBuses, type BusLive } from "@/hooks/useLiveBuses";
 import {
   useRouteStops,
@@ -43,149 +33,48 @@ export type TripRouteRef = {
   color?: string;
 };
 
-function FitBounds({ points }: { points: BusLive[] }) {
-  const map = useMap();
-  // Round to ~10m so tiny GPS jitter doesn't trigger a full bounds recompute.
-  const sig = useMemo(
-    () =>
-      points
-        .map((p) => `${p.busId}:${p.lat.toFixed(4)},${p.lng.toFixed(4)}`)
-        .sort()
-        .join("|"),
-    [points],
-  );
-  useEffect(() => {
-    if (!map || points.length === 0) return;
-    if (points.length === 1) {
-      map.panTo({ lat: points[0].lat, lng: points[0].lng });
-      return;
-    }
-    const g = (window as any).google;
-    if (!g?.maps?.LatLngBounds) return;
-    const Bounds = g.maps.LatLngBounds as new () => any;
-    const bounds = new Bounds();
-    for (const p of points) bounds.extend({ lat: p.lat, lng: p.lng });
-    map.fitBounds(bounds, 64);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, sig]);
-  return null;
-}
-
 const STALE_MS = 60_000;
 const PALETTE = ["#0ea5e9", "#8b5cf6", "#f59e0b", "#ec4899", "#14b8a6", "#ef4444", "#6366f1"];
 
-/**
- * Renders a polyline for one trip's route. Straight-line through stops by
- * default (free), upgraded to a road-snapped path on selection (one
- * Directions API call per route per 7-day window per browser).
- */
-function TripRoutePolyline({
-  routeId,
-  isSelected,
-  color,
-  mode,
-}: {
-  routeId: string;
-  isSelected: boolean;
-  color: string;
-  mode: "stops" | "snapped";
-}) {
-  const map = useMap();
-  const routesLib = useMapsLibrary("routes");
-  const stopsQ = useRouteStops(routeId);
+function busDivIcon(L: any, color: string, selected: boolean) {
+  const size = selected ? 34 : 28;
+  return L.divIcon({
+    className: "ecobus-marker",
+    html: `<div style="
+      width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;
+      background:${color};transform:rotate(-45deg);
+      border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);
+      display:flex;align-items:center;justify-content:center;">
+      <div style="transform:rotate(45deg);color:#fff;font-size:14px;font-weight:700;">🚌</div>
+    </div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+  });
+}
 
-  const stops = useMemo<LatLng[]>(() => stopsToLatLng(stopsQ.data), [stopsQ.data]);
-  const hash = useMemo(() => pathHash(stops), [stops]);
-
-  const [snapped, setSnapped] = useState<LatLng[] | null>(null);
-
-  // Hydrate snapped path from localStorage once stops are known.
-  useEffect(() => {
-    if (stops.length < 2) return;
-    const cached = loadCachedSnap(routeId, hash);
-    if (cached) setSnapped(cached);
-  }, [routeId, hash, stops.length]);
-
-  // Fetch road-snapped path on demand (cache miss only).
-  // Triggered by either: snapped-mode toggle OR explicit selection.
-  const wantsSnap = mode === "snapped" || isSelected;
-  useEffect(() => {
-    if (!wantsSnap || snapped || !routesLib || stops.length < 2) return;
-    let cancelled = false;
-    const svc = new routesLib.DirectionsService();
-    const origin = stops[0];
-    const destination = stops[stops.length - 1];
-    // Google caps waypoints at 25 (excl. origin/destination). Sample evenly if needed.
-    const middle = stops.slice(1, -1);
-    const MAX_WP = 23;
-    const waypoints =
-      middle.length <= MAX_WP
-        ? middle
-        : Array.from({ length: MAX_WP }, (_, i) =>
-            middle[Math.round((i * (middle.length - 1)) / (MAX_WP - 1))],
-          );
-
-    svc
-      .route({
-        origin,
-        destination,
-        waypoints: waypoints.map((p) => ({ location: p, stopover: true })),
-        travelMode: (window as any).google.maps.TravelMode.DRIVING,
-        optimizeWaypoints: false,
-      })
-      .then((res: any) => {
-        if (cancelled) return;
-        const route = res.routes?.[0];
-        if (!route?.overview_path?.length) return;
-        const path = route.overview_path.map((ll: any) => ({ lat: ll.lat(), lng: ll.lng() }));
-        setSnapped(path);
-        saveCachedSnap(routeId, hash, path);
-      })
-      .catch(() => {
-        /* keep showing straight-line fallback on quota / network errors */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [wantsSnap, snapped, routesLib, stops, hash, routeId]);
-
-  // Draw the polyline with the imperative Maps API (vis.gl has no <Polyline />).
-  useEffect(() => {
-    if (!map || stops.length < 2) return;
-    const g = (window as any).google;
-    if (!g?.maps?.Polyline) return;
-
-    // In "stops" mode we always render the straight dashed path, even if a
-    // snapped one is cached — the toggle is the source of truth.
-    const useSnapped = mode === "snapped" && !!snapped;
-    const path = useSnapped ? snapped! : stops;
-    const poly = new g.maps.Polyline({
-      path,
-      map,
-      strokeColor: color,
-      strokeOpacity: useSnapped ? (isSelected ? 0.95 : 0.55) : 0,
-      strokeWeight: isSelected ? 5 : 3,
-      icons: useSnapped
-        ? undefined
-        : [
-            {
-              icon: {
-                path: "M 0,-1 0,1",
-                strokeOpacity: isSelected ? 0.9 : 0.5,
-                strokeColor: color,
-                scale: isSelected ? 3 : 2,
-              },
-              offset: "0",
-              repeat: "12px",
-            },
-          ],
-      zIndex: isSelected ? 10 : 1,
-      clickable: false,
-    });
-    return () => poly.setMap(null);
-  }, [map, snapped, stops, isSelected, color, mode]);
-
-  return null;
+/** Fetch a road-snapped path from public OSRM. No API key. */
+async function fetchOsrmPath(points: LatLng[]): Promise<LatLng[] | null> {
+  if (points.length < 2) return null;
+  // OSRM caps URL length; sample if very long.
+  const MAX = 25;
+  const sample =
+    points.length <= MAX
+      ? points
+      : Array.from({ length: MAX }, (_, i) =>
+          points[Math.round((i * (points.length - 1)) / (MAX - 1))],
+        );
+  const coords = sample.map((p) => `${p.lng},${p.lat}`).join(";");
+  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const json: any = await res.json();
+    const c = json?.routes?.[0]?.geometry?.coordinates;
+    if (!Array.isArray(c)) return null;
+    return c.map((pt: [number, number]) => ({ lat: pt[1], lng: pt[0] }));
+  } catch {
+    return null;
+  }
 }
 
 export function LiveBusMap({
@@ -200,23 +89,21 @@ export function LiveBusMap({
   height?: number;
   selectedBusId?: string | null;
   onSelect?: (busId: string) => void;
-  /** Active trips → route mapping. Used to render route polylines. */
   tripRoutes?: TripRouteRef[];
-  /** Full active-trip records, used to enrich the selected bus info card. */
   activeTrips?: any[];
 }) {
   const ids = useMemo(() => buses.map((b) => b.id).filter(Boolean), [buses]);
   const { positions, connected } = useLiveBuses(ids);
   const [now, setNow] = useState(() => Date.now());
   const [pathMode, setPathMode] = useState<"stops" | "snapped">("stops");
-  // Internal fallback selection so the info card works even when callers
-  // don't wire up controlled selection (e.g. the dashboard map).
   const [internalSelected, setInternalSelected] = useState<string | null>(null);
   const effectiveSelected = selectedBusId !== undefined ? selectedBusId : internalSelected;
+
   const handleSelect = (id: string) => {
     setInternalSelected((cur) => (cur === id ? null : id));
     onSelect?.(id);
   };
+
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 5000);
     return () => clearInterval(id);
@@ -225,7 +112,6 @@ export function LiveBusMap({
   const points = useMemo(() => Object.values(positions), [positions]);
   const byId = useMemo(() => new Map<string, FleetBus>(buses.map((b) => [b.id, b])), [buses]);
 
-  // Stable color per route across renders.
   const routeColor = useMemo(() => {
     const m = new Map<string, string>();
     const uniques = Array.from(new Set(tripRoutes.map((t) => t.routeId)));
@@ -248,16 +134,20 @@ export function LiveBusMap({
     ? activeTrips.find((t: any) => (t.busId || t.bus_id) === effectiveSelected)
     : null;
 
+  // Client-only mount gate (Leaflet touches window/document at import time).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   return (
     <div className="relative overflow-hidden rounded-xl border border-border bg-card">
-      <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-2 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs shadow-sm backdrop-blur">
+      <div className="absolute left-3 top-3 z-[1000] inline-flex items-center gap-2 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs shadow-sm backdrop-blur">
         <span className={`inline-block h-2 w-2 rounded-full ${connected ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"}`} />
         <span className="font-medium">{connected ? "Live" : "Connexion…"}</span>
         <span className="text-muted-foreground">· {points.length}/{buses.length} bus</span>
       </div>
       {tripRoutes.length > 0 && (
         <div
-          className="absolute right-3 top-3 z-10 inline-flex rounded-full border border-border bg-background/90 p-0.5 text-xs shadow-sm backdrop-blur"
+          className="absolute right-3 top-3 z-[1000] inline-flex rounded-full border border-border bg-background/90 p-0.5 text-xs shadow-sm backdrop-blur"
           role="radiogroup"
           aria-label="Affichage du trajet"
         >
@@ -281,54 +171,31 @@ export function LiveBusMap({
             className={`rounded-full px-3 py-1 font-medium transition ${
               pathMode === "snapped" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
             }`}
-            title="Tracé routier réel via Google Directions (mis en cache 7j)"
+            title="Tracé routier réel via OSRM (mis en cache 7j)"
           >
             Routes
           </button>
         </div>
       )}
       <div style={{ height }}>
-        <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["routes"]}>
-          <GMap
-            mapId="ecobus-live-fleet"
-            defaultCenter={DEFAULT_MAP_CENTER}
-            defaultZoom={DEFAULT_MAP_ZOOM}
-            gestureHandling="greedy"
-            disableDefaultUI={false}
-            clickableIcons={false}
-          >
-            <FitBounds points={points} />
-            {uniqueRouteIds.map((rid) => (
-              <TripRoutePolyline
-                key={rid}
-                routeId={rid}
-                isSelected={rid === selectedRouteId}
-                color={routeColor.get(rid) || "#0ea5e9"}
-                mode={pathMode}
-              />
-            ))}
-            {points.map((p) => {
-              const bus = byId.get(p.busId);
-              const stale = now - p.updatedAt > STALE_MS;
-              const isSelected = effectiveSelected === p.busId;
-              return (
-                <AdvancedMarker
-                  key={p.busId}
-                  position={{ lat: p.lat, lng: p.lng }}
-                  onClick={() => handleSelect(p.busId)}
-                  title={bus?.name || bus?.plateNumber || p.busId}
-                >
-                  <Pin
-                    background={stale ? "#9ca3af" : isSelected ? "#0ea5e9" : "#10b981"}
-                    borderColor={isSelected ? "#0369a1" : "#065f46"}
-                    glyphColor="#ffffff"
-                    scale={isSelected ? 1.3 : 1.0}
-                  />
-                </AdvancedMarker>
-              );
-            })}
-          </GMap>
-        </APIProvider>
+        {mounted ? (
+          <LeafletInner
+            points={points}
+            byId={byId}
+            now={now}
+            effectiveSelected={effectiveSelected}
+            handleSelect={handleSelect}
+            uniqueRouteIds={uniqueRouteIds}
+            selectedRouteId={selectedRouteId}
+            routeColor={routeColor}
+            pathMode={pathMode}
+            height={height}
+          />
+        ) : (
+          <div style={{ height }} className="flex items-center justify-center text-sm text-muted-foreground">
+            Chargement de la carte…
+          </div>
+        )}
         {effectiveSelected && selectedBus && (
           <BusInfoCard
             bus={selectedBus}
@@ -342,5 +209,162 @@ export function LiveBusMap({
         )}
       </div>
     </div>
+  );
+}
+
+/** Client-only Leaflet renderer. */
+function LeafletInner(props: {
+  points: BusLive[];
+  byId: Map<string, FleetBus>;
+  now: number;
+  effectiveSelected: string | null | undefined;
+  handleSelect: (id: string) => void;
+  uniqueRouteIds: string[];
+  selectedRouteId: string | null;
+  routeColor: Map<string, string>;
+  pathMode: "stops" | "snapped";
+  height: number;
+}) {
+  const {
+    points,
+    byId,
+    now,
+    effectiveSelected,
+    handleSelect,
+    uniqueRouteIds,
+    selectedRouteId,
+    routeColor,
+    pathMode,
+    height,
+  } = props;
+
+  // Dynamic imports so SSR never touches window/document.
+  const [mods, setMods] = useState<any>(null);
+  useEffect(() => {
+    let cancel = false;
+    Promise.all([
+      import("react-leaflet"),
+      import("leaflet"),
+      // Side-effect: leaflet CSS
+      import("leaflet/dist/leaflet.css" as any).catch(() => null),
+    ]).then(([rl, L]) => {
+      if (!cancel) setMods({ rl, L: (L as any).default ?? L });
+    });
+    return () => {
+      cancel = true;
+    };
+  }, []);
+
+  if (!mods) {
+    return (
+      <div style={{ height }} className="flex items-center justify-center text-sm text-muted-foreground">
+        Chargement de la carte…
+      </div>
+    );
+  }
+
+  const { MapContainer, TileLayer, Marker, Polyline, useMap } = mods.rl;
+  const L = mods.L;
+
+  function FitBounds({ pts }: { pts: BusLive[] }) {
+    const map = useMap();
+    const sig = pts
+      .map((p) => `${p.busId}:${p.lat.toFixed(4)},${p.lng.toFixed(4)}`)
+      .sort()
+      .join("|");
+    useEffect(() => {
+      if (!map || pts.length === 0) return;
+      if (pts.length === 1) {
+        map.setView([pts[0].lat, pts[0].lng], Math.max(map.getZoom(), 13));
+        return;
+      }
+      const bounds = L.latLngBounds(pts.map((p) => [p.lat, p.lng]));
+      map.fitBounds(bounds, { padding: [64, 64] });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sig]);
+    return null;
+  }
+
+  function RoutePolyline({ routeId, isSelected, color, mode }: {
+    routeId: string; isSelected: boolean; color: string; mode: "stops" | "snapped";
+  }) {
+    const stopsQ = useRouteStops(routeId);
+    const stops = useMemo<LatLng[]>(() => stopsToLatLng(stopsQ.data), [stopsQ.data]);
+    const hash = useMemo(() => pathHash(stops), [stops]);
+    const [snapped, setSnapped] = useState<LatLng[] | null>(null);
+
+    useEffect(() => {
+      if (stops.length < 2) return;
+      const cached = loadCachedSnap(routeId, hash);
+      if (cached) setSnapped(cached);
+    }, [routeId, hash, stops.length]);
+
+    const wantsSnap = mode === "snapped" || isSelected;
+    useEffect(() => {
+      if (!wantsSnap || snapped || stops.length < 2) return;
+      let cancel = false;
+      fetchOsrmPath(stops).then((path) => {
+        if (cancel || !path) return;
+        setSnapped(path);
+        saveCachedSnap(routeId, hash, path);
+      });
+      return () => { cancel = true; };
+    }, [wantsSnap, snapped, stops, hash, routeId]);
+
+    if (stops.length < 2) return null;
+    const useSnapped = mode === "snapped" && !!snapped;
+    const path = useSnapped ? snapped! : stops;
+    const positions = path.map((p) => [p.lat, p.lng]) as [number, number][];
+
+    return (
+      <Polyline
+        positions={positions}
+        pathOptions={{
+          color,
+          weight: isSelected ? 5 : 3,
+          opacity: useSnapped ? (isSelected ? 0.95 : 0.6) : (isSelected ? 0.9 : 0.55),
+          dashArray: useSnapped ? undefined : "6 8",
+        }}
+      />
+    );
+  }
+
+  return (
+    <MapContainer
+      center={[DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng]}
+      zoom={DEFAULT_MAP_ZOOM}
+      style={{ height: "100%", width: "100%" }}
+      scrollWheelZoom
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png"
+      />
+      <FitBounds pts={points} />
+      {uniqueRouteIds.map((rid) => (
+        <RoutePolyline
+          key={rid}
+          routeId={rid}
+          isSelected={rid === selectedRouteId}
+          color={routeColor.get(rid) || "#0ea5e9"}
+          mode={pathMode}
+        />
+      ))}
+      {points.map((p) => {
+        const bus = byId.get(p.busId);
+        const stale = now - p.updatedAt > STALE_MS;
+        const isSelected = effectiveSelected === p.busId;
+        const color = stale ? "#9ca3af" : isSelected ? "#0ea5e9" : "#10b981";
+        return (
+          <Marker
+            key={p.busId}
+            position={[p.lat, p.lng]}
+            icon={busDivIcon(L, color, isSelected)}
+            eventHandlers={{ click: () => handleSelect(p.busId) }}
+            title={bus?.name || bus?.plateNumber || p.busId}
+          />
+        );
+      })}
+    </MapContainer>
   );
 }
