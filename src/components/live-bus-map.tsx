@@ -8,6 +8,8 @@
  *     (https://router.project-osrm.org — no key), cached 7 days in localStorage.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueries } from "@tanstack/react-query";
+import { RoutesAPI } from "@/lib/api";
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "@/lib/maps";
 import { useLiveBuses, type BusLive } from "@/hooks/useLiveBuses";
 import {
@@ -362,18 +364,27 @@ function LeafletInner(props: {
       return () => { map.off("moveend", handler); map.off("zoomend", handler); };
     }, [map]);
 
-    // Fetch stops for each route via existing hook (calls are de-duped by react-query).
-    const stopQueries = routeIds.map((rid) => ({ rid, q: useRouteStops(rid) }));
+    // useQueries safely handles a dynamic list of routes (no hooks-in-loop).
+    const stopQueries = useQueries({
+      queries: routeIds.map((rid) => ({
+        queryKey: ["route-stops", rid],
+        queryFn: () => RoutesAPI.stops(rid),
+        staleTime: 5 * 60_000,
+        gcTime: 30 * 60_000,
+        refetchOnWindowFocus: false,
+      })),
+    });
+    const updatedSig = stopQueries.map((q) => q.dataUpdatedAt).join("|");
     const allStops = useMemo(() => {
-      const out: { lat: number; lng: number; color: string; rid: string; idx: number }[] = [];
-      for (const { rid, q } of stopQueries) {
+      const out: { lat: number; lng: number; color: string }[] = [];
+      routeIds.forEach((rid, i) => {
         const color = colors.get(rid) || "#0ea5e9";
-        const pts = stopsToLatLng(q.data);
-        pts.forEach((p, i) => out.push({ lat: p.lat, lng: p.lng, color, rid, idx: i }));
-      }
+        const pts = stopsToLatLng(stopQueries[i]?.data);
+        for (const p of pts) out.push({ lat: p.lat, lng: p.lng, color });
+      });
       return out;
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [stopQueries.map((s) => s.q.dataUpdatedAt).join("|"), colors]);
+    }, [updatedSig, colors, routeIds.join("|")]);
 
     useEffect(() => {
       if (!(L as any).markerClusterGroup) return;
