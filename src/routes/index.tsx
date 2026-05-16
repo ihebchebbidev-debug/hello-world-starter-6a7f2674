@@ -58,7 +58,8 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "/" },
-      { rel: "preload", as: "image", href: heroBg, fetchPriority: "high" },
+      { rel: "preload", as: "image", href: heroBgMobile, fetchPriority: "high", media: "(max-width: 639px)" },
+      { rel: "preload", as: "image", href: heroBg, fetchPriority: "high", media: "(min-width: 640px)" },
     ],
     scripts: [
       {
@@ -260,8 +261,8 @@ function Hero() {
           className="mt-6 flex flex-col gap-3 sm:mt-7"
         >
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
-            <StoreBadge href="#" src={badgeAppStore} alt="Download on the App Store" size="lg" />
-            <StoreBadge href="#" src={badgeGooglePlay} alt="Get it on Google Play" size="lg" />
+              <StoreBadge href="#" src={badgeAppStore} alt="Download on the App Store" size="lg" eager />
+              <StoreBadge href="#" src={badgeGooglePlay} alt="Get it on Google Play" size="lg" eager />
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-white/55 sm:text-[12px]">
             <span className="inline-flex items-center gap-1.5">
@@ -303,11 +304,13 @@ function StoreBadge({
   src,
   alt,
   size = "md",
+  eager = false,
 }: {
   href: string;
   src: string;
   alt: string;
   size?: "md" | "lg";
+  eager?: boolean;
 }) {
   const sizeClass =
     size === "lg" ? "h-16 sm:h-20 md:h-24 lg:h-28" : "h-11 sm:h-12";
@@ -320,7 +323,8 @@ function StoreBadge({
       <img
         src={src}
         alt={alt}
-        loading="lazy"
+        loading={eager ? "eager" : "lazy"}
+        decoding="async"
         width={540}
         height={160}
         className={`${sizeClass} w-auto block object-contain select-none`}
