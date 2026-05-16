@@ -1,11 +1,12 @@
 import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { Bus, Loader2, Lock, MapPin, ShieldCheck, Activity } from "lucide-react";
+import { Bus, Check, Loader2, Lock, MapPin, ShieldCheck, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import ecobusLogo from "@/assets/ecobus-logo-full.png";
 
 export const Route = createFileRoute("/login")({
@@ -22,7 +23,21 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { login, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
+  const { lang } = useI18n();
   const [busy, setBusy] = useState(false);
+  const [captchaState, setCaptchaState] = useState<"idle" | "checking" | "verified">("idle");
+
+  const captchaT = {
+    fr: { label: "Je ne suis pas un robot", checking: "Vérification…", verified: "Vérifié", required: "Veuillez confirmer que vous n'êtes pas un robot" },
+    en: { label: "I'm not a robot", checking: "Verifying…", verified: "Verified", required: "Please confirm you are not a robot" },
+    ar: { label: "أنا لست روبوتًا", checking: "جارٍ التحقق…", verified: "تم التحقق", required: "يرجى التأكيد أنك لست روبوتًا" },
+  }[lang];
+
+  function onCaptchaClick() {
+    if (captchaState !== "idle") return;
+    setCaptchaState("checking");
+    setTimeout(() => setCaptchaState("verified"), 3000);
+  }
 
   if (!loading && isAuthenticated) return <Navigate to="/dashboard" />;
 
@@ -35,6 +50,10 @@ function LoginPage() {
     
     if (!email || !password) {
       toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+    if (captchaState !== "verified") {
+      toast.error(captchaT.required);
       return;
     }
 
@@ -165,11 +184,27 @@ function LoginPage() {
               <Button
                 type="submit"
                 className="h-11 w-full bg-gradient-brand text-primary-foreground shadow-md hover:opacity-95"
-                disabled={busy}
+                disabled={busy || captchaState !== "verified"}
               >
                 {busy && <Loader2 className="me-1 h-4 w-4 animate-spin" />}
                 Se connecter
               </Button>
+
+              <button
+                type="button"
+                onClick={onCaptchaClick}
+                disabled={captchaState !== "idle" || busy}
+                aria-pressed={captchaState === "verified"}
+                className="flex w-full items-center gap-3 rounded-lg border border-border bg-background p-3 text-left transition hover:bg-muted/40 disabled:cursor-default disabled:opacity-100"
+              >
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border bg-card">
+                  {captchaState === "checking" && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  {captchaState === "verified" && <Check className="h-4 w-4 text-primary" strokeWidth={3} />}
+                </span>
+                <span className="text-sm text-foreground">
+                  {captchaState === "checking" ? captchaT.checking : captchaState === "verified" ? captchaT.verified : captchaT.label}
+                </span>
+              </button>
             </form>
 
             <p className="mt-6 text-center text-xs text-muted-foreground">
