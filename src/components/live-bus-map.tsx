@@ -259,6 +259,9 @@ function LeafletInner(props: {
       import("leaflet"),
       // Side-effect: leaflet CSS
       import("leaflet/dist/leaflet.css" as any).catch(() => null),
+      import("leaflet.markercluster" as any).catch(() => null),
+      import("leaflet.markercluster/dist/MarkerCluster.css" as any).catch(() => null),
+      import("leaflet.markercluster/dist/MarkerCluster.Default.css" as any).catch(() => null),
     ]).then(([rl, L]) => {
       if (!cancel) setMods({ rl, L: (L as any).default ?? L });
     });
@@ -341,6 +344,165 @@ function LeafletInner(props: {
     );
   }
 
+  /**
+   * Stop markers for active routes, clustered + viewport-culled.
+   * Stops are only rendered when the map is zoomed in enough (>= 11)
+   * AND within the visible bounds — large fleets with many routes stay smooth.
+   */
+  function StopsClusterLayer({ routeIds, colors }: { routeIds: string[]; colors: Map<string, string> }) {
+    const map = useMap();
+    const groupRef = useRef<any>(null);
+    const [bounds, setBounds] = useState<any>(() => map.getBounds());
+    const [zoom, setZoom] = useState<number>(() => map.getZoom());
+
+    useEffect(() => {
+      const handler = () => { setBounds(map.getBounds()); setZoom(map.getZoom()); };
+      map.on("moveend", handler);
+      map.on("zoomend", handler);
+      return () => { map.off("moveend", handler); map.off("zoomend", handler); };
+    }, [map]);
+
+    // Fetch stops for each route via existing hook (calls are de-duped by react-query).
+    const stopQueries = routeIds.map((rid) => ({ rid, q: useRouteStops(rid) }));
+    const allStops = useMemo(() => {
+      const out: { lat: number; lng: number; color: string; rid: string; idx: number }[] = [];
+      for (const { rid, q } of stopQueries) {
+        const color = colors.get(rid) || "#0ea5e9";
+        const pts = stopsToLatLng(q.data);
+        pts.forEach((p, i) => out.push({ lat: p.lat, lng: p.lng, color, rid, idx: i }));
+      }
+      return out;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [stopQueries.map((s) => s.q.dataUpdatedAt).join("|"), colors]);
+
+    useEffect(() => {
+      if (!(L as any).markerClusterGroup) return;
+      if (!groupRef.current) {
+        groupRef.current = (L as any).markerClusterGroup({
+          chunkedLoading: true,
+          showCoverageOnHover: false,
+          spiderfyOnMaxZoom: true,
+          maxClusterRadius: 50,
+        });
+        map.addLayer(groupRef.current);
+      }
+      const group = groupRef.current;
+      group.clearLayers();
+      if (zoom < 11) return; // hide stops when zoomed out
+      const visible = allStops.filter((s) => bounds.contains([s.lat, s.lng] as any));
+      const markers = visible.map((s) =>
+        L.marker([s.lat, s.lng], { icon: stopDivIcon(L, s.color), keyboard: false }),
+      );
+      group.addLayers(markers);
+    }, [map, allStops, bounds, zoom]);
+
+    useEffect(() => {
+      return () => {
+        if (groupRef.current) {
+          map.removeLayer(groupRef.current);
+          groupRef.current = null;
+        }
+      };
+    }, [map]);
+
+    return null;
+  }
+
+  /**
+   * Bus markers — clustered, viewport-culled, and reused per busId so
+   * realtime position updates animate smoothly instead of recreating markers.
+   */
+  function BusesClusterLayer({
+    points, byId, now, selectedId, onPick,
+  }: {
+    points: BusLive[];
+    byId: Map<string, FleetBus>;
+    now: number;
+    selectedId: string | null | undefined;
+    onPick: (id: string) => void;
+  }) {
+    const map = useMap();
+    const groupRef = useRef<any>(null);
+    const markersRef = useRef<Map<string, any>>(new Map());
+    const [bounds, setBounds] = useState<any>(() => map.getBounds());
+
+    useEffect(() => {
+      const handler = () => setBounds(map.getBounds());
+      map.on("moveend", handler);
+      map.on("zoomend", handler);
+      return () => { map.off("moveend", handler); map.off("zoomend", handler); };
+    }, [map]);
+
+    // Initialize the cluster group once.
+    useEffect(() => {
+      if (!(L as any).markerClusterGroup) return;
+      groupRef.current = (L as any).markerClusterGroup({
+        chunkedLoading: true,
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+        maxClusterRadius: 60,
+        disableClusteringAtZoom: 16,
+      });
+      map.addLayer(groupRef.current);
+      return () => {
+        if (groupRef.current) {
+          map.removeLayer(groupRef.current);
+          groupRef.current = null;
+        }
+        markersRef.current.clear();
+      };
+    }, [map]);
+
+    // Sync markers — reuse per busId, only show those in viewport.
+    useEffect(() => {
+      const group = groupRef.current;
+      if (!group) return;
+
+      const liveIds = new Set(points.map((p) => p.busId));
+      // Remove markers for buses that disappeared.
+      for (const [id, m] of markersRef.current) {
+        if (!liveIds.has(id)) {
+          group.removeLayer(m);
+          markersRef.current.delete(id);
+        }
+      }
+
+      const toAdd: any[] = [];
+      for (const p of points) {
+        const inView = bounds.contains([p.lat, p.lng] as any);
+        const existing = markersRef.current.get(p.busId);
+        const stale = now - p.updatedAt > STALE_MS;
+        const isSelected = selectedId === p.busId;
+        const color = stale ? "#9ca3af" : isSelected ? "#0ea5e9" : "#10b981";
+
+        if (!inView) {
+          if (existing) {
+            group.removeLayer(existing);
+            markersRef.current.delete(p.busId);
+          }
+          continue;
+        }
+
+        if (existing) {
+          existing.setLatLng([p.lat, p.lng]);
+          existing.setIcon(busDivIcon(L, color, isSelected));
+        } else {
+          const bus = byId.get(p.busId);
+          const m = L.marker([p.lat, p.lng], {
+            icon: busDivIcon(L, color, isSelected),
+            title: bus?.name || bus?.plateNumber || p.busId,
+          });
+          m.on("click", () => onPick(p.busId));
+          markersRef.current.set(p.busId, m);
+          toAdd.push(m);
+        }
+      }
+      if (toAdd.length) group.addLayers(toAdd);
+    }, [points, bounds, now, selectedId, byId, onPick]);
+
+    return null;
+  }
+
   return (
     <MapContainer
       center={[DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng]}
@@ -362,21 +524,16 @@ function LeafletInner(props: {
           mode={pathMode}
         />
       ))}
-      {points.map((p) => {
-        const bus = byId.get(p.busId);
-        const stale = now - p.updatedAt > STALE_MS;
-        const isSelected = effectiveSelected === p.busId;
-        const color = stale ? "#9ca3af" : isSelected ? "#0ea5e9" : "#10b981";
-        return (
-          <Marker
-            key={p.busId}
-            position={[p.lat, p.lng]}
-            icon={busDivIcon(L, color, isSelected)}
-            eventHandlers={{ click: () => handleSelect(p.busId) }}
-            title={bus?.name || bus?.plateNumber || p.busId}
-          />
-        );
-      })}
+      {uniqueRouteIds.length > 0 && (
+        <StopsClusterLayer routeIds={uniqueRouteIds} colors={routeColor} />
+      )}
+      <BusesClusterLayer
+        points={points}
+        byId={byId}
+        now={now}
+        selectedId={effectiveSelected ?? null}
+        onPick={handleSelect}
+      />
     </MapContainer>
   );
 }
