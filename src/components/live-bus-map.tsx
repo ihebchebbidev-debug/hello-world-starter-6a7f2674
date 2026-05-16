@@ -52,6 +52,18 @@ function busDivIcon(L: any, color: string, selected: boolean) {
   });
 }
 
+function stopDivIcon(L: any, color: string) {
+  return L.divIcon({
+    className: "ecobus-stop-marker",
+    html: `<div style="
+      width:12px;height:12px;border-radius:50%;
+      background:${color};border:2px solid #fff;
+      box-shadow:0 1px 3px rgba(0,0,0,.35);"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+}
+
 /** Fetch a road-snapped path from public OSRM. No API key. */
 async function fetchOsrmPath(points: LatLng[]): Promise<LatLng[] | null> {
   if (points.length < 2) return null;
